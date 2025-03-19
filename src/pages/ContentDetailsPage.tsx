@@ -66,22 +66,19 @@ const ContentDetailsPage: React.FC = () => {
           <ContentTags tags={content.tags} />
           
           <div className="flex justify-between flex-wrap gap-4">
-            <div className="flex-grow">
-              <ContentMetadata 
-                content={content}
-                formattedDate={formattedDate}
-              />
-            </div>
+            <ContentMetadata 
+              formattedDate={formattedDate} 
+              contentType={content.content_type} 
+              viewCount={content.view_count} 
+            />
             
-            <div className="flex-shrink-0">
-              <ContentActions 
-                isOwner={isOwner} 
-                downloadCount={content.download_count} 
-                onDownload={handleDownload} 
-                onDelete={handleDelete} 
-                isDeleting={isDeleting} 
-              />
-            </div>
+            <ContentActions 
+              isOwner={isOwner} 
+              downloadCount={content.download_count} 
+              onDownload={handleDownload} 
+              onDelete={handleDelete} 
+              isDeleting={isDeleting} 
+            />
           </div>
           
           <Separator />

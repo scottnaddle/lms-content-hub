@@ -21,9 +21,9 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
         // Increment view count
         await incrementViewCount(id);
         
-        // Get content data from the view to include creator information
+        // Get content data
         const { data, error } = await supabase
-          .from('content_with_creator')
+          .from('contents')
           .select('*')
           .eq('id', id)
           .single();
@@ -38,15 +38,11 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
           // Fix: Cast content_type to the correct enum type
           const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document';
           
-          // Parse metadata if it exists
-          const metadata = data.metadata ? data.metadata as Record<string, any> : null;
-          
           setContent({
             ...data,
             content_type: contentType,
             fileUrl,
-            thumbnailUrl,
-            metadata
+            thumbnailUrl
           });
         }
       } catch (error) {

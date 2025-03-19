@@ -12,22 +12,10 @@ const UploadContent: React.FC = () => {
     title,
     description,
     tags,
-    duration,
-    pageCount,
-    subject,
-    gradeLevel,
-    language,
-    learningObjectives,
     setTitle,
     setDescription,
     setFileType,
     setTags,
-    setDuration,
-    setPageCount,
-    setSubject,
-    setGradeLevel,
-    setLanguage,
-    setLearningObjectives,
     handleFile,
     handleRemoveFile,
     handleSubmit
@@ -49,23 +37,11 @@ const UploadContent: React.FC = () => {
             description={description}
             fileType={fileType}
             tags={tags}
-            duration={duration}
-            pageCount={pageCount}
-            subject={subject}
-            gradeLevel={gradeLevel}
-            language={language}
-            learningObjectives={learningObjectives}
             isUploading={isUploading}
             onTitleChange={setTitle}
             onDescriptionChange={setDescription}
             onFileTypeChange={setFileType}
             onTagsChange={setTags}
-            onDurationChange={setDuration}
-            onPageCountChange={setPageCount}
-            onSubjectChange={setSubject}
-            onGradeLevelChange={setGradeLevel}
-            onLanguageChange={setLanguage}
-            onLearningObjectivesChange={setLearningObjectives}
             onSubmit={handleSubmit}
           />
         )}
