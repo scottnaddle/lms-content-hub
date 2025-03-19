@@ -13,14 +13,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-
-// Define type for content statistics data
-type ContentStats = {
-  type: string;
-  count: number;
-  viewCount: number;
-  downloadCount: number;
-};
+import { ContentStats } from '@/types/statistics';
 
 interface ContentOverviewChartProps {
   stats: ContentStats[];

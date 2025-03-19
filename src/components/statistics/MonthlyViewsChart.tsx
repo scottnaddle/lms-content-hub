@@ -15,12 +15,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-
-// Define type for view history data
-type ViewHistory = {
-  month: string;
-  count: number;
-};
+import { ViewHistory } from '@/types/statistics';
 
 interface MonthlyViewsChartProps {
   viewHistory: ViewHistory[];

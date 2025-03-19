@@ -3,13 +3,7 @@ import React from 'react';
 import { FileText, Video, Headphones } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-type ContentStats = {
-  type: string;
-  count: number;
-  viewCount: number;
-  downloadCount: number;
-};
+import { ContentStats } from '@/types/statistics';
 
 interface StatSummaryCardsProps {
   stats: ContentStats[];

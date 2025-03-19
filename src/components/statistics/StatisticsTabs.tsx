@@ -5,20 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import ContentOverviewChart from './ContentOverviewChart';
 import ContentTypeChart from './ContentTypeChart';
 import MonthlyViewsChart from './MonthlyViewsChart';
-
-// Define type for content statistics data
-type ContentStats = {
-  type: string;
-  count: number;
-  viewCount: number;
-  downloadCount: number;
-};
-
-// Define type for view history data
-type ViewHistory = {
-  month: string;
-  count: number;
-};
+import { ContentStats, ViewHistory } from '@/types/statistics';
 
 interface StatisticsTabsProps {
   stats: ContentStats[];
