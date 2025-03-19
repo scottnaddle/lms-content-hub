@@ -13,7 +13,8 @@ import {
   X,
   GraduationCap,
   Upload,
-  Share2
+  Share2,
+  BarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,7 @@ const Sidebar = ({ isOpen, closeSidebar }: SidebarProps) => {
               <p className="text-xs text-muted-foreground px-3 py-1 font-medium">{t('dashboard')}</p>
               <NavItem to="/" icon={Home} label={t('home')} />
               <NavItem to="/recently-viewed" icon={FileText} label={t('recentlyViewed')} />
+              <NavItem to="/statistics" icon={BarChart} label={t('statistics')} />
               <NavItem to="/upload" icon={Upload} label={t('uploadContent')} />
             </nav>
 

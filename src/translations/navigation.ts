@@ -76,6 +76,12 @@ export const navigationTranslations: TranslationsCollection = {
     uz: 'Teglar',
     ko: '태그',
   },
+  statistics: {
+    en: 'Statistics',
+    ru: 'Статистика',
+    uz: 'Statistika',
+    ko: '통계',
+  },
   integration: {
     en: 'Integration',
     ru: 'Интеграция',
@@ -99,5 +105,29 @@ export const navigationTranslations: TranslationsCollection = {
     ru: 'Помощь и поддержка',
     uz: 'Yordam va qo\'llab-quvvatlash',
     ko: '도움말 및 지원',
+  },
+  dashboard: {
+    en: 'Dashboard',
+    ru: 'Панель управления',
+    uz: 'Boshqaruv paneli',
+    ko: '대시보드',
+  },
+  contentLibraryLabel: {
+    en: 'Content Library',
+    ru: 'Библиотека контента',
+    uz: 'Kontent kutubxonasi',
+    ko: '콘텐츠 라이브러리',
+  },
+  uploadContent: {
+    en: 'Upload Content',
+    ru: 'Загрузить контент',
+    uz: 'Kontentni yuklash',
+    ko: '콘텐츠 업로드',
+  },
+  ltiConfiguration: {
+    en: 'LTI Configuration',
+    ru: 'Настройка LTI',
+    uz: 'LTI sozlamalari',
+    ko: 'LTI 구성',
   },
 };

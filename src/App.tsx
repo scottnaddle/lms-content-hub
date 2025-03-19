@@ -10,6 +10,7 @@ import LTIConfigPage from "./pages/LTIConfigPage";
 import ContentTypePage from "./pages/ContentTypePage";
 import ContentDetailsPage from "./pages/ContentDetailsPage";
 import RecentlyViewedPage from "./pages/RecentlyViewedPage";
+import StatisticsPage from "./pages/StatisticsPage";
 import AuthPage from "./pages/AuthPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/" element={<HomePage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/statistics" element={<StatisticsPage />} />
               <Route 
                 path="/upload" 
                 element={
