@@ -34,11 +34,19 @@ const ContentTypePage: React.FC = () => {
           ? contentType.slice(0, -1) 
           : contentType;
         
-        const { data, error } = await supabase
+        let query = supabase
           .from('contents')
           .select('*')
-          .eq('content_type', singularType)
           .order('created_at', { ascending: false });
+        
+        // For documents page, include both 'document' and 'pdf' types
+        if (singularType === 'document') {
+          query = query.or('content_type.eq.document,content_type.eq.pdf');
+        } else {
+          query = query.eq('content_type', singularType);
+        }
+        
+        const { data, error } = await query;
         
         if (error) throw error;
         
