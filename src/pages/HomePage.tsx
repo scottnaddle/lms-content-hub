@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Clock, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Chip } from '@/components/ui/chip';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Mock data for demonstration
 const recentContent: ContentItem[] = [
@@ -48,36 +49,37 @@ const recentContent: ContentItem[] = [
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   return (
     <PageLayout>
       <div className="space-y-12">
         <section className="space-y-2">
           <div className="flex items-center gap-2">
-            <Chip className="bg-primary/10 text-primary border-none">Dashboard</Chip>
+            <Chip className="bg-primary/10 text-primary border-none">{t('dashboard')}</Chip>
           </div>
           <div className="flex items-center justify-between mb-8">
-            <h1 className="font-semibold tracking-tight">Welcome to Learning Content Hub</h1>
+            <h1 className="font-semibold tracking-tight">{t('welcomeToDashboard')}</h1>
             <Button onClick={() => navigate('/upload')} className="gap-2">
               <Plus className="h-4 w-4" />
-              <span>Upload Content</span>
+              <span>{t('uploadContent')}</span>
             </Button>
           </div>
           
           <div className="glass-panel p-6 pb-10 relative overflow-hidden">
             <div className="absolute -right-10 -bottom-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl"></div>
             <div className="relative">
-              <h2 className="text-2xl font-semibold mb-2">Manage Your Learning Content</h2>
+              <h2 className="text-2xl font-semibold mb-2">{t('manageContent')}</h2>
               <p className="text-muted-foreground max-w-2xl mb-4">
-                Upload, organize, and share your educational content seamlessly with Canvas LMS, Moodle, and other learning platforms through LTI integration.
+                {t('contentDescription')}
               </p>
               <div className="flex gap-3 mt-6">
                 <Button onClick={() => navigate('/upload')} className="gap-2">
-                  Get Started
+                  {t('getStarted')}
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/lti-configuration')}>
-                  LTI Configuration
+                  {t('ltiConfiguration')}
                 </Button>
               </div>
             </div>
@@ -88,14 +90,14 @@ const HomePage: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-xl font-medium">Recently Added Content</h2>
+              <h2 className="text-xl font-medium">{t('recentlyAdded')}</h2>
             </div>
             <Button 
               variant="ghost" 
               onClick={() => navigate('/recently-viewed')} 
               className="text-sm"
             >
-              View All
+              {t('viewAll')}
             </Button>
           </div>
           

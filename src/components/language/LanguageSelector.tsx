@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Globe } from 'lucide-react';
+import { Languages } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -25,7 +25,7 @@ const LanguageSelector: React.FC = () => {
       <SelectTrigger className="w-[100px] bg-background" aria-label="Select Language">
         <SelectValue placeholder="Language">
           <div className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
+            <Languages className="h-4 w-4" />
             <span>{language.toUpperCase()}</span>
           </div>
         </SelectValue>

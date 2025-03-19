@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type SidebarProps = {
   isOpen: boolean;
@@ -52,6 +53,7 @@ const NavItem = ({ to, icon: Icon, label }: NavItemProps) => {
 
 const Sidebar = ({ isOpen, closeSidebar }: SidebarProps) => {
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -93,30 +95,30 @@ const Sidebar = ({ isOpen, closeSidebar }: SidebarProps) => {
         <ScrollArea className="h-[calc(100vh-4rem)] px-3 py-2 subtle-scroll">
           <div className="space-y-6">
             <nav className="flex flex-col gap-1">
-              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">Dashboard</p>
-              <NavItem to="/" icon={Home} label="Home" />
-              <NavItem to="/recently-viewed" icon={FileText} label="Recently Viewed" />
-              <NavItem to="/upload" icon={Upload} label="Upload Content" />
+              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">{t('dashboard')}</p>
+              <NavItem to="/" icon={Home} label={t('home')} />
+              <NavItem to="/recently-viewed" icon={FileText} label={t('recentlyViewed')} />
+              <NavItem to="/upload" icon={Upload} label={t('uploadContent')} />
             </nav>
 
             <nav className="flex flex-col gap-1">
-              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">Content Library</p>
-              <NavItem to="/videos" icon={Video} label="Videos" />
-              <NavItem to="/audio" icon={Headphones} label="Audio" />
-              <NavItem to="/documents" icon={FileText} label="Documents" />
-              <NavItem to="/collections" icon={Folder} label="Collections" />
-              <NavItem to="/tags" icon={Tag} label="Tags" />
+              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">{t('contentLibrary')}</p>
+              <NavItem to="/videos" icon={Video} label={t('videos')} />
+              <NavItem to="/audio" icon={Headphones} label={t('audio')} />
+              <NavItem to="/documents" icon={FileText} label={t('documents')} />
+              <NavItem to="/collections" icon={Folder} label={t('collections')} />
+              <NavItem to="/tags" icon={Tag} label={t('tags')} />
             </nav>
 
             <nav className="flex flex-col gap-1">
-              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">Integration</p>
-              <NavItem to="/lti-configuration" icon={Share2} label="LTI Configuration" />
+              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">{t('integration')}</p>
+              <NavItem to="/lti-configuration" icon={Share2} label={t('ltiConfiguration')} />
             </nav>
 
             <nav className="flex flex-col gap-1">
-              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">System</p>
-              <NavItem to="/settings" icon={Settings} label="Settings" />
-              <NavItem to="/help" icon={HelpCircle} label="Help & Support" />
+              <p className="text-xs text-muted-foreground px-3 py-1 font-medium">{t('system')}</p>
+              <NavItem to="/settings" icon={Settings} label={t('settings')} />
+              <NavItem to="/help" icon={HelpCircle} label={t('helpSupport')} />
             </nav>
           </div>
         </ScrollArea>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
@@ -13,13 +14,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/auth' 
 }) => {
   const { user, isLoading } = useAuth();
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">로딩 중...</h2>
-          <p className="text-muted-foreground">잠시만 기다려주세요.</p>
+          <h2 className="text-xl font-semibold mb-2">{t('loadingText')}</h2>
+          <p className="text-muted-foreground">{t('pleaseWait')}</p>
         </div>
       </div>
     );
