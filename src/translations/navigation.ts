@@ -1,4 +1,3 @@
-
 import { TranslationsCollection } from './types';
 
 export const navigationTranslations: TranslationsCollection = {
@@ -197,6 +196,18 @@ export const navigationTranslations: TranslationsCollection = {
     uz: 'Ko\'rish tendentsiyalari',
     ko: '조회 추세',
   },
+  trends: {
+    en: 'Trends',
+    ru: 'Тренды',
+    uz: 'Tendensiyalar',
+    ko: '추세',
+  },
+  comparison: {
+    en: 'Comparison',
+    ru: 'Сравнение',
+    uz: 'Taqqoslash',
+    ko: '비교',
+  },
   contentOverview: {
     en: 'Content Overview',
     ru: 'Обзор контента',
@@ -244,5 +255,53 @@ export const navigationTranslations: TranslationsCollection = {
     ru: 'Загрузки',
     uz: 'Yuklab olishlar',
     ko: '다운로드',
+  },
+  contentTrends: {
+    en: 'Content Trends',
+    ru: 'Тренды контента',
+    uz: 'Kontent tendensiyalari',
+    ko: '콘텐츠 추세',
+  },
+  viewsAndDownloadsOverTime: {
+    en: 'Views and downloads over time',
+    ru: 'Просмотры и загрузки по времени',
+    uz: 'Vaqt davomida ko\'rishlar va yuklab olishlar',
+    ko: '시간에 따른 조회 및 다운로드',
+  },
+  contentComparison: {
+    en: 'Content Comparison',
+    ru: 'Сравнение контента',
+    uz: 'Kontent taqqoslash',
+    ko: '콘텐츠 비교',
+  },
+  contentTypeMetricsComparison: {
+    en: 'Content type metrics comparison',
+    ru: 'Сравнение метрик типов контента',
+    uz: 'Kontent turlari metrikalarini taqqoslash',
+    ko: '콘텐츠 유형 메트릭 비교',
+  },
+  engagement: {
+    en: 'Engagement',
+    ru: 'Вовлеченность',
+    uz: 'Jalb qilish',
+    ko: '참여도',
+  },
+  popularity: {
+    en: 'Popularity',
+    ru: 'Популярность',
+    uz: 'Mashhurlik',
+    ko: '인기도',
+  },
+  growth: {
+    en: 'Growth',
+    ru: 'Рост',
+    uz: 'O\'sish',
+    ko: '성장률',
+  },
+  retention: {
+    en: 'Retention',
+    ru: 'Удержание',
+    uz: 'Saqlash',
+    ko: '유지율',
   },
 };
