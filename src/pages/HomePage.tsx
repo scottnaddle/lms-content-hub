@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ContentGrid, { ContentItem } from '@/components/content/ContentGrid';
 import { Button } from '@/components/ui/button';
@@ -7,49 +7,60 @@ import { Plus, Clock, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Chip } from '@/components/ui/chip';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-// Mock data for demonstration
-const recentContent: ContentItem[] = [
-  {
-    id: '1',
-    title: 'Introduction to React Hooks',
-    description: 'Learn the basics of React Hooks and how to use them in your applications.',
-    type: 'video',
-    thumbnail: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    dateAdded: '2023-10-15',
-    tags: ['React', 'JavaScript', 'Web Development'],
-  },
-  {
-    id: '2',
-    title: 'CSS Grid Layout Complete Guide',
-    description: 'A comprehensive guide to CSS Grid Layout with practical examples.',
-    type: 'pdf',
-    thumbnail: 'https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    dateAdded: '2023-10-10',
-    tags: ['CSS', 'Web Design', 'Frontend'],
-  },
-  {
-    id: '3',
-    title: 'Podcast: Future of Machine Learning',
-    description: 'An insightful discussion about the future of machine learning and AI.',
-    type: 'audio',
-    dateAdded: '2023-10-05',
-    tags: ['Machine Learning', 'AI', 'Technology'],
-  },
-  {
-    id: '4',
-    title: 'Database Design Fundamentals',
-    description: 'Learn the fundamentals of database design and implementation.',
-    type: 'document',
-    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    dateAdded: '2023-10-01',
-    tags: ['Database', 'SQL', 'Backend'],
-  },
-];
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { generateThumbnailUrl } from '@/lib/utils';
+import { Tables } from '@/integrations/supabase/types';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRecentContent() {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('contents')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(8);
+
+        if (error) {
+          throw error;
+        }
+
+        // Transform the database data to ContentItem format
+        const formattedContent: ContentItem[] = data.map((item: Tables['contents']['Row']) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description || undefined,
+          type: item.content_type as any,
+          thumbnail: item.thumbnail_path || generateThumbnailUrl(item.content_type),
+          dateAdded: item.created_at,
+          tags: item.tags || [],
+        }));
+
+        setRecentContent(formattedContent);
+      } catch (error: any) {
+        console.error('Error fetching content:', error);
+        toast({
+          title: t('errorOccurred'),
+          description: error.message || t('unableToFetchContent'),
+          variant: 'destructive',
+        });
+        // Set empty array to prevent the UI from waiting indefinitely
+        setRecentContent([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchRecentContent();
+  }, [toast, t]);
   
   return (
     <PageLayout>
@@ -101,7 +112,16 @@ const HomePage: React.FC = () => {
             </Button>
           </div>
           
-          <ContentGrid items={recentContent} />
+          {isLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <ContentGrid 
+              items={recentContent} 
+              emptyMessage={t('noContentFound')}
+            />
+          )}
         </section>
       </div>
     </PageLayout>
