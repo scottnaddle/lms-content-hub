@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -26,10 +25,10 @@ interface ContentDetails {
   file_path: string | null;
   thumbnail_path: string | null;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   tags: string[] | null;
-  view_count: number;
-  download_count: number;
+  view_count: number | null;
+  download_count: number | null;
   fileUrl?: string;
   thumbnailUrl?: string;
 }
@@ -61,8 +60,8 @@ const ContentDetailsPage: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // 조회수 증가
-        await supabase.rpc('increment_view_count', { content_id: id });
+        // Fix: Cast id to UUID type to match the parameter type
+        await supabase.rpc('increment_view_count', { content_id: id as unknown as UUID });
         
         // 콘텐츠 데이터 가져오기
         const { data, error } = await supabase
@@ -92,8 +91,12 @@ const ContentDetailsPage: React.FC = () => {
             thumbnailUrl = thumbnailData?.publicUrl || '';
           }
           
+          // Fix: Cast content_type to the correct enum type
+          const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document';
+          
           setContent({
             ...data,
+            content_type: contentType,
             fileUrl,
             thumbnailUrl
           });
@@ -117,8 +120,8 @@ const ContentDetailsPage: React.FC = () => {
     if (!content || !content.fileUrl) return;
     
     try {
-      // 다운로드 카운트 증가
-      await supabase.rpc('increment_download_count', { content_id: content.id });
+      // Fix: Cast id to UUID type to match the parameter type
+      await supabase.rpc('increment_download_count', { content_id: content.id as unknown as UUID });
       
       // 파일 다운로드
       window.open(content.fileUrl, '_blank');
