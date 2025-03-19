@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -15,71 +15,193 @@ import {
 } from 'lucide-react';
 import { Chip } from '@/components/ui/chip';
 import { Separator } from '@/components/ui/separator';
-import { ContentItem } from '@/components/content/ContentGrid';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
-// Mock content items for demonstration
-const mockContentItems: Record<string, ContentItem> = {
-  '1': {
-    id: '1',
-    title: 'Introduction to React Hooks',
-    description: 'Learn the basics of React Hooks and how to use them in your applications. This comprehensive video covers useState, useEffect, useContext, useReducer, and custom hooks with practical examples.',
-    type: 'video',
-    thumbnail: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    dateAdded: '2023-10-15',
-    tags: ['React', 'JavaScript', 'Web Development', 'Hooks', 'Frontend'],
-  },
-  '2': {
-    id: '2',
-    title: 'CSS Grid Layout Complete Guide',
-    description: 'A comprehensive guide to CSS Grid Layout with practical examples. This PDF document covers all aspects of CSS Grid, from basic concepts to advanced techniques for creating complex layouts.',
-    type: 'pdf',
-    thumbnail: 'https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    dateAdded: '2023-10-10',
-    tags: ['CSS', 'Web Design', 'Frontend', 'Layout', 'Responsive Design'],
-  },
-  '3': {
-    id: '3',
-    title: 'Podcast: Future of Machine Learning',
-    description: 'An insightful discussion about the future of machine learning and AI. This podcast features experts in the field discussing emerging trends, challenges, and opportunities in machine learning and artificial intelligence.',
-    type: 'audio',
-    dateAdded: '2023-10-05',
-    tags: ['Machine Learning', 'AI', 'Technology', 'Future Tech', 'Data Science'],
-  },
-  '4': {
-    id: '4',
-    title: 'Database Design Fundamentals',
-    description: 'Learn the fundamentals of database design and implementation. This document covers relational database concepts, normalization, SQL basics, and best practices for designing efficient database schemas.',
-    type: 'document',
-    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    dateAdded: '2023-10-01',
-    tags: ['Database', 'SQL', 'Backend', 'Data Modeling', 'System Design'],
-  },
-};
+interface ContentDetails {
+  id: string;
+  title: string;
+  description: string | null;
+  content_type: 'video' | 'audio' | 'pdf' | 'document';
+  file_path: string | null;
+  thumbnail_path: string | null;
+  created_at: string;
+  created_by: string;
+  tags: string[] | null;
+  view_count: number;
+  download_count: number;
+  fileUrl?: string;
+  thumbnailUrl?: string;
+}
 
 const ContentDetailsPage: React.FC = () => {
   const { type, id } = useParams<{ type: string; id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [content, setContent] = useState<ContentDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   
-  // In a real application, you would fetch this from your API/database
-  const content = id ? mockContentItems[id] : null;
+  // 현재 사용자 가져오기
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUser(data.user?.id || null);
+    };
+    
+    getCurrentUser();
+  }, []);
   
-  if (!content) {
+  // 콘텐츠 상세 정보 가져오기
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (!id) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // 조회수 증가
+        await supabase.rpc('increment_view_count', { content_id: id });
+        
+        // 콘텐츠 데이터 가져오기
+        const { data, error } = await supabase
+          .from('contents')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          // 파일 URL 가져오기
+          let fileUrl = '';
+          let thumbnailUrl = '';
+          
+          if (data.file_path) {
+            const { data: fileData } = await supabase.storage
+              .from('content_files')
+              .getPublicUrl(data.file_path);
+            fileUrl = fileData?.publicUrl || '';
+          }
+          
+          if (data.thumbnail_path) {
+            const { data: thumbnailData } = await supabase.storage
+              .from('content_files')
+              .getPublicUrl(data.thumbnail_path);
+            thumbnailUrl = thumbnailData?.publicUrl || '';
+          }
+          
+          setContent({
+            ...data,
+            fileUrl,
+            thumbnailUrl
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching content:', error);
+        toast({
+          title: "오류 발생",
+          description: "콘텐츠를 불러오는 중 오류가 발생했습니다.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchContent();
+  }, [id, toast]);
+  
+  const handleDownload = async () => {
+    if (!content || !content.fileUrl) return;
+    
+    try {
+      // 다운로드 카운트 증가
+      await supabase.rpc('increment_download_count', { content_id: content.id });
+      
+      // 파일 다운로드
+      window.open(content.fileUrl, '_blank');
+    } catch (error) {
+      console.error('Download error:', error);
+    }
+  };
+  
+  const handleDelete = async () => {
+    if (!content || !currentUser) return;
+    
+    try {
+      setIsDeleting(true);
+      
+      // 스토리지에서 파일 삭제
+      if (content.file_path) {
+        await supabase.storage
+          .from('content_files')
+          .remove([content.file_path]);
+      }
+      
+      // 썸네일 삭제
+      if (content.thumbnail_path) {
+        await supabase.storage
+          .from('content_files')
+          .remove([content.thumbnail_path]);
+      }
+      
+      // 데이터베이스에서 콘텐츠 삭제
+      const { error } = await supabase
+        .from('contents')
+        .delete()
+        .eq('id', content.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "삭제 완료",
+        description: "콘텐츠가 성공적으로 삭제되었습니다.",
+      });
+      
+      // 콘텐츠 유형 페이지로 이동
+      navigate(`/${content.content_type}s`);
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: "삭제 실패",
+        description: "콘텐츠를 삭제하는 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+      setIsDeleting(false);
+    }
+  };
+  
+  if (isLoading) {
     return (
       <PageLayout>
-        <div className="text-center py-12">
-          <h2 className="text-xl font-medium mb-2">Content Not Found</h2>
-          <p className="text-muted-foreground mb-6">The content you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </PageLayout>
     );
   }
   
-  const formattedDate = new Date(content.dateAdded).toLocaleDateString('en-US', {
+  if (!content) {
+    return (
+      <PageLayout>
+        <div className="text-center py-12">
+          <h2 className="text-xl font-medium mb-2">콘텐츠를 찾을 수 없음</h2>
+          <p className="text-muted-foreground mb-6">요청하신 콘텐츠가 존재하지 않거나 삭제되었습니다.</p>
+          <Button onClick={() => navigate(-1)}>뒤로 가기</Button>
+        </div>
+      </PageLayout>
+    );
+  }
+  
+  const formattedDate = new Date(content.created_at).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+  
+  const isOwner = currentUser === content.created_by;
   
   return (
     <PageLayout>
@@ -90,13 +212,13 @@ const ContentDetailsPage: React.FC = () => {
             size="icon"
             onClick={() => navigate(-1)}
             className="mr-2"
-            aria-label="Go Back"
+            aria-label="뒤로 가기"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
           <Chip className="bg-primary/10 text-primary border-none capitalize">
-            {content.type}
+            {content.content_type}
           </Chip>
         </div>
         
@@ -123,70 +245,95 @@ const ContentDetailsPage: React.FC = () => {
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <FileText className="h-4 w-4" />
-                <span>{content.type.toUpperCase()}</span>
+                <span>{content.content_type.toUpperCase()}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>조회수: {content.view_count}</span>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-1">
                 <Share2 className="h-4 w-4" />
-                <span>Share</span>
+                <span>공유</span>
               </Button>
-              <Button variant="outline" size="sm" className="gap-1">
+              <Button variant="outline" size="sm" className="gap-1" onClick={handleDownload}>
                 <Download className="h-4 w-4" />
-                <span>Download</span>
+                <span>다운로드 ({content.download_count})</span>
               </Button>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {isOwner && (
+                <>
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive hover:text-destructive"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           
           <Separator />
           
           <div className="glass-panel p-6">
-            {content.type === 'video' && (
+            {content.content_type === 'video' && (
               <div className="aspect-video rounded-lg overflow-hidden bg-black">
-                {content.thumbnail ? (
-                  <img 
-                    src={content.thumbnail} 
-                    alt={content.title}
-                    className="w-full h-full object-cover"
+                {content.fileUrl ? (
+                  <video 
+                    src={content.fileUrl} 
+                    controls 
+                    className="w-full h-full object-contain"
+                    poster={content.thumbnailUrl || undefined}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-black/80">
-                    <p className="text-white/70">Video Preview</p>
+                    <p className="text-white/70">비디오를 불러올 수 없습니다</p>
                   </div>
                 )}
               </div>
             )}
             
-            {content.type === 'audio' && (
+            {content.content_type === 'audio' && (
               <div className="p-8 rounded-lg bg-accent flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-primary text-5xl">♪</span>
+                {content.fileUrl ? (
+                  <div className="w-full">
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-primary text-5xl">♪</span>
+                    </div>
+                    <p className="text-lg font-medium text-center mb-4">{content.title}</p>
+                    <audio controls className="w-full">
+                      <source src={content.fileUrl} />
+                      브라우저가 오디오 재생을 지원하지 않습니다.
+                    </audio>
                   </div>
-                  <p className="text-lg font-medium">{content.title}</p>
-                  <p className="text-muted-foreground">Audio Player</p>
-                </div>
+                ) : (
+                  <p className="text-muted-foreground">오디오를 불러올 수 없습니다</p>
+                )}
               </div>
             )}
             
-            {(content.type === 'pdf' || content.type === 'document') && (
+            {(content.content_type === 'pdf' || content.content_type === 'document') && (
               <div className="p-6 rounded-lg bg-accent">
-                {content.thumbnail ? (
-                  <img 
-                    src={content.thumbnail} 
-                    alt={content.title}
-                    className="w-full h-auto object-cover rounded-md"
-                  />
+                {content.fileUrl && content.content_type === 'pdf' ? (
+                  <div className="aspect-[4/3]">
+                    <iframe 
+                      src={content.fileUrl} 
+                      className="w-full h-full rounded-md"
+                      title={content.title}
+                    />
+                  </div>
                 ) : (
-                  <div className="aspect-[4/3] rounded-lg flex items-center justify-center bg-muted">
-                    <FileText className="h-16 w-16 text-muted-foreground/40" />
+                  <div className="aspect-[4/3] rounded-lg flex flex-col items-center justify-center bg-muted">
+                    <FileText className="h-16 w-16 text-muted-foreground/40 mb-4" />
+                    <Button onClick={handleDownload}>다운로드하여 보기</Button>
                   </div>
                 )}
               </div>
@@ -194,13 +341,13 @@ const ContentDetailsPage: React.FC = () => {
           </div>
 
           <div className="glass-panel p-6">
-            <h3 className="text-lg font-medium mb-4">LTI Integration</h3>
+            <h3 className="text-lg font-medium mb-4">LTI 통합</h3>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                This content is available for embedding in Canvas LMS and Moodle through LTI integration.
+                이 콘텐츠는 LTI 통합을 통해 Canvas LMS 및 Moodle에 포함할 수 있습니다.
               </p>
               <Button onClick={() => navigate('/lti-configuration')}>
-                Configure LTI
+                LTI 구성
               </Button>
             </div>
           </div>

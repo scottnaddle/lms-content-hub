@@ -9,7 +9,89 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      contents: {
+        Row: {
+          content_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          download_count: number | null
+          file_path: string | null
+          id: string
+          tags: string[] | null
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_path?: string | null
+          id?: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_path?: string | null
+          id?: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      lti_configurations: {
+        Row: {
+          consumer_key: string
+          content_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          platform: string
+          shared_secret: string
+        }
+        Insert: {
+          consumer_key: string
+          content_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          platform: string
+          shared_secret: string
+        }
+        Update: {
+          consumer_key?: string
+          content_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          platform?: string
+          shared_secret?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lti_configurations_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "contents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

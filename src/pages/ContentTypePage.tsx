@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import ContentGrid, { ContentItem } from '@/components/content/ContentGrid';
@@ -9,96 +9,96 @@ import { Plus, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { capitalizeFirstLetter } from '@/lib/utils';
-
-// Mock data for demonstration
-const mockContent: Record<string, ContentItem[]> = {
-  videos: [
-    {
-      id: '1',
-      title: 'Introduction to React Hooks',
-      description: 'Learn the basics of React Hooks and how to use them in your applications.',
-      type: 'video',
-      thumbnail: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      dateAdded: '2023-10-15',
-      tags: ['React', 'JavaScript', 'Web Development'],
-    },
-    {
-      id: '5',
-      title: 'Advanced CSS Animations',
-      description: 'Master advanced CSS animations and transitions for modern web interfaces.',
-      type: 'video',
-      thumbnail: 'https://images.unsplash.com/photo-1550063873-ab792950096b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      dateAdded: '2023-09-20',
-      tags: ['CSS', 'Animation', 'Web Design'],
-    },
-  ],
-  audio: [
-    {
-      id: '3',
-      title: 'Podcast: Future of Machine Learning',
-      description: 'An insightful discussion about the future of machine learning and AI.',
-      type: 'audio',
-      dateAdded: '2023-10-05',
-      tags: ['Machine Learning', 'AI', 'Technology'],
-    },
-    {
-      id: '6',
-      title: 'Interview with Tech Leaders',
-      description: 'Exclusive interviews with technology leaders about the future of the industry.',
-      type: 'audio',
-      dateAdded: '2023-09-15',
-      tags: ['Technology', 'Leadership', 'Interview'],
-    },
-  ],
-  documents: [
-    {
-      id: '2',
-      title: 'CSS Grid Layout Complete Guide',
-      description: 'A comprehensive guide to CSS Grid Layout with practical examples.',
-      type: 'pdf',
-      thumbnail: 'https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      dateAdded: '2023-10-10',
-      tags: ['CSS', 'Web Design', 'Frontend'],
-    },
-    {
-      id: '4',
-      title: 'Database Design Fundamentals',
-      description: 'Learn the fundamentals of database design and implementation.',
-      type: 'document',
-      thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      dateAdded: '2023-10-01',
-      tags: ['Database', 'SQL', 'Backend'],
-    },
-  ],
-};
+import { supabase } from '@/integrations/supabase/client';
 
 const ContentTypePage: React.FC = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [contents, setContents] = useState<ContentItem[]>([]);
   
   const contentType = type?.toLowerCase() || '';
   const typeLabel = capitalizeFirstLetter(contentType);
   
-  // Filter content based on search term
-  const filteredContent = mockContent[contentType]?.filter(item => 
+  // Supabase에서 콘텐츠 로드
+  useEffect(() => {
+    const loadContents = async () => {
+      try {
+        setIsLoading(true);
+        
+        // contentType에서 's'를 제거하여 단수형으로 변환 (videos -> video)
+        const singularType = contentType.endsWith('s') 
+          ? contentType.slice(0, -1) 
+          : contentType;
+        
+        const { data, error } = await supabase
+          .from('contents')
+          .select('*')
+          .eq('content_type', singularType)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (data) {
+          // Supabase 데이터를 ContentItem 형식으로 변환
+          const contentItems: ContentItem[] = await Promise.all(data.map(async (item) => {
+            // 파일 URL 가져오기
+            let thumbnail = '';
+            if (item.thumbnail_path) {
+              const { data: urlData } = await supabase.storage
+                .from('content_files')
+                .getPublicUrl(item.thumbnail_path);
+              thumbnail = urlData?.publicUrl || '';
+            }
+            
+            return {
+              id: item.id,
+              title: item.title,
+              description: item.description || '',
+              type: item.content_type as 'video' | 'audio' | 'pdf' | 'document',
+              thumbnail: thumbnail,
+              dateAdded: item.created_at,
+              tags: item.tags || [],
+            };
+          }));
+          
+          setContents(contentItems);
+        }
+      } catch (error) {
+        console.error('Error loading contents:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (contentType) {
+      loadContents();
+    }
+  }, [contentType]);
+  
+  // 검색어로 콘텐츠 필터링
+  const filteredContent = contents.filter(item => 
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) || [];
+  );
   
   return (
     <PageLayout>
       <div className="space-y-8">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Chip className="bg-primary/10 text-primary border-none">Content Library</Chip>
+            <Chip className="bg-primary/10 text-primary border-none">콘텐츠 라이브러리</Chip>
           </div>
           <div className="flex items-center justify-between">
             <h1 className="font-semibold tracking-tight">{typeLabel}</h1>
             <Button onClick={() => navigate('/upload')} className="gap-2">
               <Plus className="h-4 w-4" />
-              <span>Upload {contentType === 'videos' ? 'Video' : contentType === 'audio' ? 'Audio' : 'Document'}</span>
+              <span>
+                {contentType === 'videos' ? '비디오' : 
+                 contentType === 'audio' ? '오디오' : '문서'} 업로드
+              </span>
             </Button>
           </div>
         </div>
@@ -106,17 +106,23 @@ const ContentTypePage: React.FC = () => {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder={`Search ${contentType}...`}
+            placeholder={`${typeLabel} 검색...`}
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <ContentGrid 
-          items={filteredContent} 
-          emptyMessage={searchTerm ? `No ${contentType} found matching "${searchTerm}"` : `No ${contentType} found`} 
-        />
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <ContentGrid 
+            items={filteredContent} 
+            emptyMessage={searchTerm ? `"${searchTerm}"와(과) 일치하는 ${typeLabel}을(를) 찾을 수 없습니다` : `${typeLabel}이(가) 없습니다`} 
+          />
+        )}
       </div>
     </PageLayout>
   );
