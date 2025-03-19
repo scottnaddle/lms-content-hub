@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContentMetadataFormProps {
   title: string;
@@ -37,13 +38,15 @@ const ContentMetadataForm: React.FC<ContentMetadataFormProps> = ({
   onTagsChange,
   onSubmit
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-4 glass-panel p-6 animate-fade-in">
       <div className="space-y-2">
-        <Label htmlFor="title">제목</Label>
+        <Label htmlFor="title">{t('contentTitle')}</Label>
         <Input 
           id="title" 
-          placeholder="콘텐츠 제목 입력" 
+          placeholder={t('enterContentTitle')} 
           required 
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
@@ -51,10 +54,10 @@ const ContentMetadataForm: React.FC<ContentMetadataFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">설명</Label>
+        <Label htmlFor="description">{t('description')}</Label>
         <Textarea 
           id="description" 
-          placeholder="콘텐츠 설명 입력" 
+          placeholder={t('enterContentDescription')} 
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
         />
@@ -62,25 +65,25 @@ const ContentMetadataForm: React.FC<ContentMetadataFormProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="content-type">콘텐츠 유형</Label>
+          <Label htmlFor="content-type">{t('contentType')}</Label>
           <Select value={fileType} onValueChange={onFileTypeChange}>
             <SelectTrigger>
-              <SelectValue placeholder="콘텐츠 유형 선택" />
+              <SelectValue placeholder={t('selectContentType')} />
             </SelectTrigger>
             <SelectContent position="popper">
-              <SelectItem value="video">비디오</SelectItem>
-              <SelectItem value="audio">오디오</SelectItem>
-              <SelectItem value="pdf">PDF</SelectItem>
-              <SelectItem value="document">문서</SelectItem>
+              <SelectItem value="video">{t('video')}</SelectItem>
+              <SelectItem value="audio">{t('audio')}</SelectItem>
+              <SelectItem value="pdf">{t('pdf')}</SelectItem>
+              <SelectItem value="document">{t('document')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tags">태그 (쉼표로 구분)</Label>
+          <Label htmlFor="tags">{t('tagsWithSeparator')}</Label>
           <Input 
             id="tags" 
-            placeholder="예: 강의, 수학, 초급" 
+            placeholder={t('tagsExample')} 
             value={tags}
             onChange={(e) => onTagsChange(e.target.value)}
           />
@@ -89,7 +92,7 @@ const ContentMetadataForm: React.FC<ContentMetadataFormProps> = ({
 
       <div className="pt-4">
         <Button type="submit" className="w-full" disabled={isUploading}>
-          {isUploading ? "업로드 중..." : "콘텐츠 업로드"}
+          {isUploading ? t('uploading') : t('uploadContent')}
         </Button>
       </div>
     </div>

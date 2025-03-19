@@ -4,6 +4,7 @@ import { Upload, X, FileText, Video, FileAudio, File as FileIcon } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FileUploadZoneProps {
   file: File | null;
@@ -19,6 +20,7 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
   onRemoveFile
 }) => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const { t } = useLanguage();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -83,15 +85,15 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             onClick={onRemoveFile}
           >
             <X className="h-4 w-4 mr-2" />
-            파일 제거
+            {t('removeFile')}
           </Button>
         </div>
       ) : (
         <>
           <Upload className="h-10 w-10 mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-1">파일을 끌어다 놓으세요</h3>
+          <h3 className="text-lg font-medium mb-1">{t('dropFilesHere')}</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            또는 파일 찾아보기
+            {t('orBrowseFiles')}
           </p>
           <Input
             id="file-upload"
@@ -106,11 +108,11 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             className="relative"
           >
             <label htmlFor="file-upload">
-              <span>파일 찾기</span>
+              <span>{t('browseFiles')}</span>
             </label>
           </Button>
           <p className="text-xs text-muted-foreground mt-4">
-            지원 형식: MP4, MP3, PDF, DOC, DOCX 등
+            {t('supportedFormats')}
           </p>
         </>
       )}
