@@ -18,25 +18,23 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-// 로그인 폼 스키마
-const loginSchema = z.object({
-  email: z.string().email({ message: '올바른 이메일 주소를 입력해주세요.' }),
-  password: z.string().min(6, { message: '비밀번호는 최소 6자 이상이어야 합니다.' }),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-
-interface LoginFormProps {
-  onLoginSuccess?: () => void;
-}
-
-const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+const LoginForm: React.FC<{ onLoginSuccess?: () => void }> = ({ onLoginSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { language, t } = useLanguage();
+
+  // Login form schema with translations
+  const loginSchema = z.object({
+    email: z.string().email({ message: t('invalidEmail') }),
+    password: z.string().min(6, { message: t('passwordLength') }),
+  });
+
+  type LoginFormValues = z.infer<typeof loginSchema>;
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -61,8 +59,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       }
 
       toast({
-        title: '로그인 성공',
-        description: '환영합니다!',
+        title: language === 'ko' ? '로그인 성공' : 'Login successful',
+        description: language === 'ko' ? '환영합니다!' : 'Welcome!',
       });
 
       if (onLoginSuccess) {
@@ -74,7 +72,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       console.error('Login error:', error);
       setError(
         error.message === 'Invalid login credentials'
-          ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+          ? language === 'ko' 
+            ? '이메일 또는 비밀번호가 올바르지 않습니다.' 
+            : language === 'ru'
+            ? 'Неверный адрес электронной почты или пароль.'
+            : language === 'uz'
+            ? 'Elektron pochta yoki parol noto\'g\'ri.'
+            : 'Invalid email or password.'
           : error.message
       );
     } finally {
@@ -101,9 +105,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>이메일</FormLabel>
+                <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="이메일" {...field} />
+                  <Input placeholder={t('email')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,12 +119,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>비밀번호</FormLabel>
+                <FormLabel>{t('password')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="비밀번호"
+                      placeholder={t('password')}
                       {...field}
                     />
                     <Button
@@ -140,7 +144,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           />
 
           <Button className="w-full mt-6" type="submit" disabled={isLoading}>
-            {isLoading ? '로그인 중...' : '로그인'}
+            {isLoading ? t('loggingIn') : t('login')}
           </Button>
         </form>
       </Form>

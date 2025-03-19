@@ -17,15 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-
-// 회원가입 폼 스키마
-const registerSchema = z.object({
-  email: z.string().email({ message: '올바른 이메일 주소를 입력해주세요.' }),
-  password: z.string().min(6, { message: '비밀번호는 최소 6자 이상이어야 합니다.' }),
-  username: z.string().min(3, { message: '사용자 이름은 최소 3자 이상이어야 합니다.' }),
-});
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RegisterFormProps {
   onRegisterSuccess?: (email: string) => void;
@@ -36,6 +28,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+  const { language, t } = useLanguage();
+
+  // Registration form schema with translations
+  const registerSchema = z.object({
+    email: z.string().email({ message: t('invalidEmail') }),
+    password: z.string().min(6, { message: t('passwordLength') }),
+    username: z.string().min(3, { message: t('usernameLength') }),
+  });
+
+  type RegisterFormValues = z.infer<typeof registerSchema>;
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -65,9 +67,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
         throw error;
       }
 
+      const successMessage = {
+        en: 'Account created successfully. Please check your email.',
+        ru: 'Учетная запись успешно создана. Пожалуйста, проверьте свою электронную почту.',
+        uz: 'Hisob muvaffaqiyatli yaratildi. Iltimos, elektron pochtangizni tekshiring.',
+        ko: '계정이 생성되었습니다. 이메일을 확인해주세요.'
+      };
+
       toast({
-        title: '회원가입 성공',
-        description: '계정이 생성되었습니다. 이메일을 확인해주세요.',
+        title: language === 'ko' ? '회원가입 성공' : 
+               language === 'ru' ? 'Регистрация прошла успешно' :
+               language === 'uz' ? 'Ro\'yxatdan o\'tish muvaffaqiyatli' : 
+               'Registration successful',
+        description: successMessage[language],
       });
 
       if (onRegisterSuccess) {
@@ -75,9 +87,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
       }
     } catch (error: any) {
       console.error('Register error:', error);
+      
+      const userAlreadyRegisteredMsg = {
+        en: 'This email is already registered.',
+        ru: 'Этот адрес электронной почты уже зарегистрирован.',
+        uz: 'Bu elektron pochta allaqachon ro\'yxatdan o\'tgan.',
+        ko: '이미 등록된 이메일 주소입니다.'
+      };
+      
       setError(
         error.message === 'User already registered'
-          ? '이미 등록된 이메일 주소입니다.'
+          ? userAlreadyRegisteredMsg[language]
           : error.message
       );
     } finally {
@@ -104,9 +124,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>이메일</FormLabel>
+                <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="이메일" {...field} />
+                  <Input placeholder={t('email')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -118,9 +138,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>사용자 이름</FormLabel>
+                <FormLabel>{t('username')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="사용자 이름" {...field} />
+                  <Input placeholder={t('username')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -132,12 +152,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>비밀번호</FormLabel>
+                <FormLabel>{t('password')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="비밀번호"
+                      placeholder={t('password')}
                       {...field}
                     />
                     <Button
@@ -157,7 +177,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
           />
 
           <Button className="w-full mt-6" type="submit" disabled={isLoading}>
-            {isLoading ? '회원가입 중...' : '회원가입'}
+            {isLoading ? t('registering') : t('register')}
           </Button>
         </form>
       </Form>

@@ -5,20 +5,27 @@ import { Separator } from '@/components/ui/separator';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import SocialLogin from './SocialLogin';
+import LanguageSelector from '../language/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AuthForm: React.FC = () => {
   const [loginEmail, setLoginEmail] = useState('');
+  const { t } = useLanguage();
 
   const handleRegisterSuccess = (email: string) => {
     setLoginEmail(email);
   };
 
   return (
-    <div className="glass-panel p-6">
+    <div className="glass-panel p-6 relative">
+      <div className="absolute top-3 right-3">
+        <LanguageSelector />
+      </div>
+      
       <Tabs defaultValue="login" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="login">로그인</TabsTrigger>
-          <TabsTrigger value="register">회원가입</TabsTrigger>
+          <TabsTrigger value="login">{t('login')}</TabsTrigger>
+          <TabsTrigger value="register">{t('register')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="login">
@@ -30,7 +37,7 @@ const AuthForm: React.FC = () => {
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-background px-2 text-muted-foreground">
-                소셜 계정으로 로그인
+                {t('socialLogin')}
               </span>
             </div>
           </div>
@@ -47,7 +54,7 @@ const AuthForm: React.FC = () => {
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-background px-2 text-muted-foreground">
-                소셜 계정으로 회원가입
+                {t('socialRegister')}
               </span>
             </div>
           </div>
