@@ -1,11 +1,20 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Menu, User, Bell } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Menu, User, Bell, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -13,6 +22,13 @@ type HeaderProps = {
 
 const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <header className="w-full border-b bg-background/80 backdrop-blur-md sticky top-0 z-40 animate-in">
@@ -54,12 +70,35 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Bell className="h-5 w-5" />
           </Button>
-          <Avatar className="size-8">
-            <AvatarImage src="" />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
+          
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="size-8 cursor-pointer">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user.email ? user.email.substring(0, 2).toUpperCase() : <User className="h-4 w-4" />}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>프로필</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>로그아웃</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="default" size="sm" onClick={() => navigate('/auth')}>
+              로그인
+            </Button>
+          )}
         </div>
       </div>
     </header>

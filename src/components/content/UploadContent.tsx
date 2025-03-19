@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Upload, X, FileText, Video, FileAudio, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const UploadContent: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -27,6 +27,7 @@ const UploadContent: React.FC = () => {
   const [tags, setTags] = useState<string>('');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -35,7 +36,6 @@ const UploadContent: React.FC = () => {
   };
 
   const handleFile = (selectedFile: File) => {
-    // Auto-detect file type
     const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
     
     if (fileExtension) {
@@ -90,9 +90,6 @@ const UploadContent: React.FC = () => {
     try {
       setIsUploading(true);
       
-      // 현재 로그인된 사용자 확인
-      const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         toast({
           title: "인증 오류",
@@ -103,10 +100,8 @@ const UploadContent: React.FC = () => {
         return;
       }
       
-      // 파일 경로 생성 (사용자 ID를 포함하여 권한 관리)
       const filePath = `${user.id}/${fileType}s/${Date.now()}_${file.name}`;
       
-      // Supabase Storage에 파일 업로드
       const { data: fileData, error: fileError } = await supabase.storage
         .from('content_files')
         .upload(filePath, file);
@@ -115,12 +110,10 @@ const UploadContent: React.FC = () => {
         throw fileError;
       }
       
-      // 파일 URL 생성
       const { data: urlData } = await supabase.storage
         .from('content_files')
         .getPublicUrl(filePath);
       
-      // 콘텐츠 메타데이터를 데이터베이스에 저장
       const { data: contentData, error: contentError } = await supabase
         .from('contents')
         .insert({
@@ -144,7 +137,6 @@ const UploadContent: React.FC = () => {
         description: "콘텐츠가 성공적으로 업로드되었습니다.",
       });
       
-      // 업로드 성공 후 콘텐츠 타입에 해당하는 페이지로 이동
       navigate(`/${fileType}s`);
       
     } catch (error: any) {

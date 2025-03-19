@@ -9,26 +9,48 @@ import UploadPage from "./pages/UploadPage";
 import LTIConfigPage from "./pages/LTIConfigPage";
 import ContentTypePage from "./pages/ContentTypePage";
 import ContentDetailsPage from "./pages/ContentDetailsPage";
+import AuthPage from "./pages/AuthPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/upload" element={<UploadPage />} />
-          <Route path="/lti-configuration" element={<LTIConfigPage />} />
-          <Route path="/:type" element={<ContentTypePage />} />
-          <Route path="/content/:type/:id" element={<ContentDetailsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route 
+              path="/upload" 
+              element={
+                <ProtectedRoute>
+                  <UploadPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/lti-configuration" 
+              element={
+                <ProtectedRoute>
+                  <LTIConfigPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/:type" element={<ContentTypePage />} />
+            <Route path="/content/:type/:id" element={<ContentDetailsPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
