@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
         }
 
         // Transform the database data to ContentItem format
-        const formattedContent: ContentItem[] = data.map((item: Tables['contents']['Row']) => ({
+        const formattedContent: ContentItem[] = data.map((item: Tables<'contents'>) => ({
           id: item.id,
           title: item.title,
           description: item.description || undefined,
@@ -48,8 +48,8 @@ const HomePage: React.FC = () => {
       } catch (error: any) {
         console.error('Error fetching content:', error);
         toast({
-          title: "Error",
-          description: error.message || "Unable to fetch content",
+          title: t('errorOccurred'),
+          description: error.message || t('unableToFetchContent'),
           variant: 'destructive',
         });
         // Set empty array to prevent the UI from waiting indefinitely
