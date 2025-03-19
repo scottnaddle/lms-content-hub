@@ -48,8 +48,8 @@ const HomePage: React.FC = () => {
       } catch (error: any) {
         console.error('Error fetching content:', error);
         toast({
-          title: t('errorOccurred'),
-          description: error.message || t('unableToFetchContent'),
+          title: "Error",
+          description: error.message || "Unable to fetch content",
           variant: 'destructive',
         });
         // Set empty array to prevent the UI from waiting indefinitely
@@ -119,7 +119,7 @@ const HomePage: React.FC = () => {
           ) : (
             <ContentGrid 
               items={recentContent} 
-              emptyMessage={t('noContentFound')}
+              emptyMessage="No content found"
             />
           )}
         </section>
