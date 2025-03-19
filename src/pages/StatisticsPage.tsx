@@ -133,10 +133,10 @@ const StatisticsPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <BarChartIcon className="h-5 w-5 text-muted-foreground" />
-            <h1 className="font-semibold tracking-tight">Content Statistics</h1>
+            <h1 className="font-semibold tracking-tight">{t('contentStatistics')}</h1>
           </div>
           <p className="text-muted-foreground max-w-2xl">
-            View comprehensive statistics about content usage and popularity across the platform.
+            {t('statisticsDescription')}
           </p>
         </div>
         
@@ -150,37 +150,37 @@ const StatisticsPage: React.FC = () => {
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Content</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('totalContent')}</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalContent}</div>
                   <p className="text-xs text-muted-foreground">
-                    Items in content library
+                    {t('itemsInLibrary')}
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('totalViews')}</CardTitle>
                   <Video className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalViews}</div>
                   <p className="text-xs text-muted-foreground">
-                    Content views
+                    {t('contentViews')}
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Downloads</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('totalDownloads')}</CardTitle>
                   <Headphones className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalDownloads}</div>
                   <p className="text-xs text-muted-foreground">
-                    Content downloads
+                    {t('contentDownloads')}
                   </p>
                 </CardContent>
               </Card>
@@ -189,16 +189,16 @@ const StatisticsPage: React.FC = () => {
             {/* Charts */}
             <Tabs defaultValue="overview" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="content-types">Content Types</TabsTrigger>
-                <TabsTrigger value="views">View Trends</TabsTrigger>
+                <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
+                <TabsTrigger value="content-types">{t('contentTypes')}</TabsTrigger>
+                <TabsTrigger value="views">{t('viewTrends')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Content Overview</CardTitle>
-                    <CardDescription>Distribution of content by type</CardDescription>
+                    <CardTitle>{t('contentOverview')}</CardTitle>
+                    <CardDescription>{t('contentDistribution')}</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px]">
                     <ChartContainer 
@@ -234,8 +234,8 @@ const StatisticsPage: React.FC = () => {
               <TabsContent value="content-types" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Content Type Statistics</CardTitle>
-                    <CardDescription>Views and downloads by content type</CardDescription>
+                    <CardTitle>{t('contentTypeStats')}</CardTitle>
+                    <CardDescription>{t('viewsAndDownloads')}</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px]">
                     <ChartContainer
@@ -250,8 +250,8 @@ const StatisticsPage: React.FC = () => {
                         <YAxis />
                         <Tooltip content={<ChartTooltipContent />} />
                         <Legend />
-                        <Bar dataKey="viewCount" name="Views" fill="#0088FE" />
-                        <Bar dataKey="downloadCount" name="Downloads" fill="#00C49F" />
+                        <Bar dataKey="viewCount" name={t('views')} fill="#0088FE" />
+                        <Bar dataKey="downloadCount" name={t('downloads')} fill="#00C49F" />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
@@ -261,8 +261,8 @@ const StatisticsPage: React.FC = () => {
               <TabsContent value="views" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Monthly View Trends</CardTitle>
-                    <CardDescription>Content views over the past 6 months</CardDescription>
+                    <CardTitle>{t('monthlyViewTrends')}</CardTitle>
+                    <CardDescription>{t('contentViewsOverTime')}</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px]">
                     <ChartContainer
@@ -276,7 +276,7 @@ const StatisticsPage: React.FC = () => {
                         <YAxis />
                         <Tooltip content={<ChartTooltipContent />} />
                         <Legend />
-                        <Bar dataKey="count" name="Views" fill="#0088FE" />
+                        <Bar dataKey="count" name={t('views')} fill="#0088FE" />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
