@@ -130,4 +130,40 @@ export const navigationGeneralTranslations: TranslationsCollection = {
     uz: 'LTI sozlamalari',
     ko: 'LTI 구성',
   },
+  searchResults: {
+    en: 'Search Results',
+    ru: 'Результаты поиска',
+    uz: 'Qidiruv natijalari',
+    ko: '검색 결과',
+  },
+  resultsFor: {
+    en: 'Results for "{query}"',
+    ru: 'Результаты по запросу "{query}"',
+    uz: '"{query}" bo\'yicha natijalar',
+    ko: '"{query}" 검색 결과',
+  },
+  noResultsFound: {
+    en: 'No results found for "{query}"',
+    ru: 'Нет результатов по запросу "{query}"',
+    uz: '"{query}" bo\'yicha natija topilmadi',
+    ko: '"{query}"에 대한 검색 결과가 없습니다',
+  },
+  enterSearchTerm: {
+    en: 'Enter a search term to find content',
+    ru: 'Введите поисковый запрос для поиска контента',
+    uz: 'Kontent izlash uchun qidiruv so\'zini kiriting',
+    ko: '콘텐츠를 찾으려면 검색어를 입력하세요',
+  },
+  searchError: {
+    en: 'Search Error',
+    ru: 'Ошибка поиска',
+    uz: 'Qidiruv xatosi',
+    ko: '검색 오류',
+  },
+  errorOccurred: {
+    en: 'An error occurred while searching',
+    ru: 'Произошла ошибка при поиске',
+    uz: 'Qidirishda xatolik yuz berdi',
+    ko: '검색 중 오류가 발생했습니다',
+  },
 };

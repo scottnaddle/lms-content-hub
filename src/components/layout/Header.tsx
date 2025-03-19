@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, User, Bell, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/language/LanguageSelector';
+import ContentSearch from '@/components/content-type/ContentSearch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,10 +28,18 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
   };
 
   return (
@@ -59,13 +68,15 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
         {!isMobile && (
           <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder={t('searchContent')}
                 className="pl-9 bg-background border rounded-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
+            </form>
           </div>
         )}
 
