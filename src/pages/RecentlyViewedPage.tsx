@@ -26,25 +26,35 @@ const RecentlyViewedPage: React.FC = () => {
         
         if (user) {
           // Get recently viewed content for the logged-in user
+          // We need to use a raw query because TypeScript doesn't know about the user_views table yet
           const { data, error } = await supabase
-            .from('user_views')
-            .select('content_id, viewed_at, contents(*)')
-            .eq('user_id', user.id)
-            .order('viewed_at', { ascending: false })
+            .from('contents')
+            .select(`
+              id, 
+              title, 
+              description, 
+              content_type, 
+              thumbnail_path, 
+              tags, 
+              created_at,
+              user_views!inner(viewed_at)
+            `)
+            .eq('user_views.user_id', user.id)
+            .order('user_views.viewed_at', { ascending: false })
             .limit(20);
             
           if (error) throw error;
           
           if (data && data.length > 0) {
             // Transform the database data to ContentItem format
-            const formattedContent: ContentItem[] = data.map((item) => ({
-              id: item.contents.id,
-              title: item.contents.title,
-              description: item.contents.description || undefined,
-              type: item.contents.content_type as any,
-              thumbnail: item.contents.thumbnail_path || generateThumbnailUrl(item.contents.content_type),
-              dateAdded: item.viewed_at, // Use the view date instead of created_at
-              tags: item.contents.tags || [],
+            const formattedContent: ContentItem[] = data.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description || undefined,
+              type: item.content_type as any,
+              thumbnail: item.thumbnail_path || generateThumbnailUrl(item.content_type),
+              dateAdded: item.user_views[0].viewed_at, // Use the view date instead of created_at
+              tags: item.tags || [],
             }));
             
             setRecentContent(formattedContent);

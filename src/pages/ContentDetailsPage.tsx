@@ -51,32 +51,15 @@ const ContentDetailsPage: React.FC = () => {
       // If user is logged in and content_id is available, record this view
       if (data.user && id) {
         try {
-          // Check if this view already exists for this user and content
-          const { data: existingView, error: viewCheckError } = await supabase
-            .from('user_views')
-            .select('*')
-            .eq('user_id', data.user.id)
-            .eq('content_id', id)
-            .maybeSingle();
+          // We must use a raw query approach since TypeScript doesn't know about user_views
+          const { data: viewData, error: viewCheckError } = await supabase
+            .rpc('record_content_view', { 
+              p_user_id: data.user.id,
+              p_content_id: id
+            });
           
-          if (viewCheckError) throw viewCheckError;
-          
-          if (existingView) {
-            // Update the viewed_at timestamp
-            await supabase
-              .from('user_views')
-              .update({ viewed_at: new Date().toISOString() })
-              .eq('user_id', data.user.id)
-              .eq('content_id', id);
-          } else {
-            // Create a new view record
-            await supabase
-              .from('user_views')
-              .insert({
-                user_id: data.user.id,
-                content_id: id,
-                viewed_at: new Date().toISOString()
-              });
+          if (viewCheckError) {
+            console.error('Error recording view:', viewCheckError);
           }
         } catch (error) {
           console.error('Error recording view:', error);
