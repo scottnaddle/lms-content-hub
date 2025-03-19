@@ -38,11 +38,15 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
           // Fix: Cast content_type to the correct enum type
           const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document';
           
+          // Parse metadata if it exists
+          const metadata = data.metadata ? data.metadata as Record<string, any> : null;
+          
           setContent({
             ...data,
             content_type: contentType,
             fileUrl,
-            thumbnailUrl
+            thumbnailUrl,
+            metadata
           });
         }
       } catch (error) {

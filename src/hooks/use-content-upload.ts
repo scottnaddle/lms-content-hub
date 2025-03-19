@@ -112,7 +112,7 @@ export const useContentUpload = () => {
         .getPublicUrl(filePath);
       
       // Prepare metadata object
-      const metadata: ContentMetadata = {
+      const metadata: Record<string, any> = {
         file_size: file.size,
         file_format: file.type,
         subject: subject || undefined,
