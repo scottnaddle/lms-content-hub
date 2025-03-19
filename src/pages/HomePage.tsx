@@ -48,8 +48,8 @@ const HomePage: React.FC = () => {
       } catch (error: any) {
         console.error('Error fetching content:', error);
         toast({
-          title: t('errorOccurred'),
-          description: error.message || t('unableToFetchContent'),
+          title: t('notFound'), // Using an existing translation key
+          description: error.message || t('contentNotFoundDesc'), // Using an existing translation key
           variant: 'destructive',
         });
         // Set empty array to prevent the UI from waiting indefinitely
