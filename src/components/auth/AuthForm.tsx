@@ -5,7 +5,6 @@ import { Separator } from '@/components/ui/separator';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import SocialLogin from './SocialLogin';
-import LanguageSelector from '../language/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const AuthForm: React.FC = () => {
@@ -18,10 +17,6 @@ const AuthForm: React.FC = () => {
 
   return (
     <div className="glass-panel p-6 relative">
-      <div className="absolute top-3 right-3">
-        <LanguageSelector />
-      </div>
-      
       <Tabs defaultValue="login" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="login">{t('login')}</TabsTrigger>
