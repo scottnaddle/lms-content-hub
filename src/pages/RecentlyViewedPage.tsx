@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ContentGrid, { ContentItem } from '@/components/content/ContentGrid';
+import ContentSearch from '@/components/content-type/ContentSearch';
 import { Chip } from '@/components/ui/chip';
 import { Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +15,25 @@ const RecentlyViewedPage: React.FC = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
+  const [filteredContent, setFilteredContent] = useState<ContentItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Filter content based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredContent(recentContent);
+    } else {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      const filtered = recentContent.filter(
+        (item) =>
+          item.title.toLowerCase().includes(lowerSearchTerm) ||
+          (item.description && item.description.toLowerCase().includes(lowerSearchTerm)) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(lowerSearchTerm))
+      );
+      setFilteredContent(filtered);
+    }
+  }, [searchTerm, recentContent]);
 
   useEffect(() => {
     async function fetchRecentViewedContent() {
@@ -23,10 +42,11 @@ const RecentlyViewedPage: React.FC = () => {
         
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('Current user:', user ? 'Logged in' : 'Not logged in');
         
         if (user) {
+          console.log('Fetching recently viewed content for user:', user.id);
           // Get recently viewed content for the logged-in user
-          // We need to use a raw query because TypeScript doesn't know about the user_views table yet
           const { data, error } = await supabase
             .from('contents')
             .select(`
@@ -43,7 +63,12 @@ const RecentlyViewedPage: React.FC = () => {
             .order('user_views.viewed_at', { ascending: false })
             .limit(20);
             
-          if (error) throw error;
+          if (error) {
+            console.error('Error fetching user views:', error);
+            throw error;
+          }
+          
+          console.log('Fetched user views data:', data ? `${data.length} items` : 'No data');
           
           if (data && data.length > 0) {
             // Transform the database data to ContentItem format
@@ -59,6 +84,7 @@ const RecentlyViewedPage: React.FC = () => {
             
             setRecentContent(formattedContent);
           } else {
+            console.log('No viewed content, falling back to recently added content');
             // If no viewed content, fall back to recently added content
             const { data: recentData, error: recentError } = await supabase
               .from('contents')
@@ -66,7 +92,12 @@ const RecentlyViewedPage: React.FC = () => {
               .order('created_at', { ascending: false })
               .limit(20);
               
-            if (recentError) throw recentError;
+            if (recentError) {
+              console.error('Error fetching recent content:', recentError);
+              throw recentError;
+            }
+            
+            console.log('Fetched recent content:', recentData ? `${recentData.length} items` : 'No data');
             
             const formattedContent: ContentItem[] = recentData.map((item: Tables<'contents'>) => ({
               id: item.id,
@@ -81,6 +112,7 @@ const RecentlyViewedPage: React.FC = () => {
             setRecentContent(formattedContent);
           }
         } else {
+          console.log('No user logged in, showing recent content');
           // For anonymous users, show recent content
           const { data, error } = await supabase
             .from('contents')
@@ -88,7 +120,12 @@ const RecentlyViewedPage: React.FC = () => {
             .order('created_at', { ascending: false })
             .limit(20);
             
-          if (error) throw error;
+          if (error) {
+            console.error('Error fetching recent content for anonymous user:', error);
+            throw error;
+          }
+          
+          console.log('Fetched recent content for anonymous user:', data ? `${data.length} items` : 'No data');
           
           const formattedContent: ContentItem[] = data.map((item: Tables<'contents'>) => ({
             id: item.id,
@@ -122,7 +159,7 @@ const RecentlyViewedPage: React.FC = () => {
   return (
     <PageLayout>
       <div className="space-y-8">
-        <div className="space-y-2">
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Chip className="bg-primary/10 text-primary border-none">{t('contentLibraryLabel')}</Chip>
           </div>
@@ -133,6 +170,12 @@ const RecentlyViewedPage: React.FC = () => {
           <p className="text-muted-foreground max-w-2xl">
             {t('recentlyViewedDescription')}
           </p>
+          
+          <ContentSearch 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            placeholder={t('searchContent')}
+          />
         </div>
         
         {isLoading ? (
@@ -141,7 +184,7 @@ const RecentlyViewedPage: React.FC = () => {
           </div>
         ) : (
           <ContentGrid 
-            items={recentContent} 
+            items={filteredContent.length > 0 ? filteredContent : recentContent} 
             emptyMessage={t('contentNotFound') || "No content found"}
           />
         )}

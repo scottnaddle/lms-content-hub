@@ -9,6 +9,7 @@ import UploadPage from "./pages/UploadPage";
 import LTIConfigPage from "./pages/LTIConfigPage";
 import ContentTypePage from "./pages/ContentTypePage";
 import ContentDetailsPage from "./pages/ContentDetailsPage";
+import RecentlyViewedPage from "./pages/RecentlyViewedPage";
 import AuthPage from "./pages/AuthPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              <Route path="/recently-viewed" element={<RecentlyViewedPage />} />
               <Route path="/:type" element={<ContentTypePage />} />
               <Route path="/content/:type/:id" element={<ContentDetailsPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
