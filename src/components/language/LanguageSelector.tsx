@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Check, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Globe } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Language, useLanguage } from '@/contexts/LanguageContext';
 
 const languages = [
@@ -18,29 +18,26 @@ const languages = [
 ];
 
 const LanguageSelector: React.FC = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="flex items-center gap-1">
-          <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{t('selectLanguage')}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+    <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+      <SelectTrigger className="w-[100px] bg-background" aria-label="Select Language">
+        <SelectValue placeholder="Language">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            <span>{language.toUpperCase()}</span>
+          </div>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent align="end">
         {languages.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => setLanguage(lang.code as Language)}
-            className="flex items-center justify-between"
-          >
-            <span>{lang.name}</span>
-            {language === lang.code && <Check className="h-4 w-4 ml-2" />}
-          </DropdownMenuItem>
+          <SelectItem key={lang.code} value={lang.code}>
+            {lang.name}
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   );
 };
 

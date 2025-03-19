@@ -96,7 +96,32 @@ export const translations = {
     ru: 'Язык',
     uz: 'Til',
     ko: '언어',
-  }
+  },
+  // Header related translations
+  myAccount: {
+    en: 'My Account',
+    ru: 'Мой аккаунт',
+    uz: 'Mening hisobim',
+    ko: '내 계정',
+  },
+  profile: {
+    en: 'Profile',
+    ru: 'Профиль',
+    uz: 'Profil',
+    ko: '프로필',
+  },
+  logout: {
+    en: 'Logout',
+    ru: 'Выйти',
+    uz: 'Chiqish',
+    ko: '로그아웃',
+  },
+  searchContent: {
+    en: 'Search content...',
+    ru: 'Поиск контента...',
+    uz: 'Kontent qidirish...',
+    ko: '콘텐츠 검색...',
+  },
 };
 
 // Function to translate text

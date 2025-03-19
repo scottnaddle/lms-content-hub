@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSelector from '@/components/language/LanguageSelector';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     await signOut();
@@ -59,7 +62,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search content..."
+                placeholder={t('searchContent')}
                 className="pl-9 bg-background border rounded-full"
               />
             </div>
@@ -67,6 +70,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         )}
 
         <div className="flex items-center gap-4">
+          <LanguageSelector />
+          
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Bell className="h-5 w-5" />
           </Button>
@@ -82,21 +87,21 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('myAccount')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
-                  <span>프로필</span>
+                  <span>{t('profile')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>로그아웃</span>
+                  <span>{t('logout')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <Button variant="default" size="sm" onClick={() => navigate('/auth')}>
-              로그인
+              {t('login')}
             </Button>
           )}
         </div>
