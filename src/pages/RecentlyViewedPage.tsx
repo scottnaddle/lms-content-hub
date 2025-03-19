@@ -68,10 +68,10 @@ const RecentlyViewedPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-muted-foreground" />
-            <h1 className="font-semibold tracking-tight">{t('recentlyAdded')}</h1>
+            <h1 className="font-semibold tracking-tight">{t('recentlyViewed')}</h1>
           </div>
           <p className="text-muted-foreground max-w-2xl">
-            {t('recentlyViewedDescription') || 'Browse your recently uploaded content.'}
+            {'Browse your recently uploaded content.'}
           </p>
         </div>
         
@@ -82,7 +82,7 @@ const RecentlyViewedPage: React.FC = () => {
         ) : (
           <ContentGrid 
             items={recentContent} 
-            emptyMessage={t('noContentFound') || "No content found"}
+            emptyMessage={t('contentNotFound') || "No content found"}
           />
         )}
       </div>
