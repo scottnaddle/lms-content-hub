@@ -47,5 +47,8 @@ export const useLanguage = () => {
   return context;
 };
 
+// Re-export the Language type from types.ts
+export type { Language };
+
 // Re-export translations for convenience
 export { translations };
