@@ -51,7 +51,14 @@ const App = () => (
               />
               <Route path="/recently-viewed" element={<RecentlyViewedPage />} />
               <Route path="/:type" element={<ContentTypePage />} />
-              <Route path="/content/:type/:id" element={<ContentDetailsPage />} />
+              <Route 
+                path="/content/:type/:id" 
+                element={
+                  <ProtectedRoute>
+                    <ContentDetailsPage />
+                  </ProtectedRoute>
+                } 
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

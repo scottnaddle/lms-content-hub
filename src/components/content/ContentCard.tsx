@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { File, Video, FileAudio, FileText, MoreVertical, ExternalLink, Download } from 'lucide-react';
+import { File, Video, FileAudio, FileText, MoreVertical, ExternalLink, Download, Lock } from 'lucide-react';
 import { Chip } from '@/components/ui/chip';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +43,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
   onClick,
 }) => {
   const Icon = contentTypeIcons[type];
+  const { user } = useAuth();
   const formattedDate = new Date(dateAdded).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -87,6 +89,13 @@ const ContentCard: React.FC<ContentCardProps> = ({
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-accent">
               <Icon className="h-12 w-12 text-accent-foreground/40" />
+            </div>
+          )}
+          {!user && (
+            <div className="absolute top-2 left-2">
+              <Chip variant="default" className="text-[10px] bg-primary/90 backdrop-blur-sm text-primary-foreground border">
+                <Lock className="h-3 w-3 mr-1" /> 로그인 필요
+              </Chip>
             </div>
           )}
           <div className="absolute bottom-2 right-2">

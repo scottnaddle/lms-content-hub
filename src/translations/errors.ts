@@ -63,4 +63,22 @@ export const errorTranslations: TranslationsCollection = {
     uz: 'Iltimos, kuting',
     ko: '잠시만 기다려주세요',
   },
+  loginRequired: {
+    en: 'Login Required',
+    ru: 'Требуется авторизация',
+    uz: 'Kirish talab qilinadi',
+    ko: '로그인 필요',
+  },
+  loginRequiredDesc: {
+    en: 'Please log in to view this content',
+    ru: 'Пожалуйста, войдите в систему для просмотра этого контента',
+    uz: 'Iltimos, ushbu kontentni ko\'rish uchun tizimga kiring',
+    ko: '이 콘텐츠를 보려면 로그인하세요',
+  },
+  goToLogin: {
+    en: 'Go to Login',
+    ru: 'Перейти к входу',
+    uz: 'Kirish sahifasiga o\'tish',
+    ko: '로그인 페이지로 이동',
+  },
 };
