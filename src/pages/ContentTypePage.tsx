@@ -1,24 +1,19 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import ContentGrid, { ContentItem } from '@/components/content/ContentGrid';
-import { Button } from '@/components/ui/button';
-import { Chip } from '@/components/ui/chip';
-import { Plus, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import ContentTypeHeader from '@/components/content-type/ContentTypeHeader';
+import ContentSearch from '@/components/content-type/ContentSearch';
 
 const ContentTypePage: React.FC = () => {
   const { type } = useParams<{ type: string }>();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [contents, setContents] = useState<ContentItem[]>([]);
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   
   const contentType = type?.toLowerCase() || '';
   const typeLabel = capitalizeFirstLetter(contentType);
@@ -94,13 +89,6 @@ const ContentTypePage: React.FC = () => {
     item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
-  // Get the appropriate button text based on content type
-  const getUploadButtonText = () => {
-    if (contentType === 'videos') return t('uploadVideo');
-    if (contentType === 'audio') return t('uploadAudio');
-    return t('uploadDocument');
-  };
-  
   // Get the appropriate search placeholder text based on content type
   const getSearchPlaceholder = () => {
     if (contentType === 'videos') return t('searchVideos');
@@ -119,28 +107,13 @@ const ContentTypePage: React.FC = () => {
   return (
     <PageLayout>
       <div className="space-y-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Chip className="bg-primary/10 text-primary border-none">{t('contentLibraryLabel')}</Chip>
-          </div>
-          <div className="flex items-center justify-between">
-            <h1 className="font-semibold tracking-tight">{typeLabel}</h1>
-            <Button onClick={() => navigate('/upload')} className="gap-2">
-              <Plus className="h-4 w-4" />
-              <span>{getUploadButtonText()}</span>
-            </Button>
-          </div>
-        </div>
+        <ContentTypeHeader typeLabel={typeLabel} />
         
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={getSearchPlaceholder()}
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <ContentSearch 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm} 
+          placeholder={getSearchPlaceholder()} 
+        />
         
         {isLoading ? (
           <div className="flex justify-center py-12">
