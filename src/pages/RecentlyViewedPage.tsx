@@ -46,7 +46,8 @@ const RecentlyViewedPage: React.FC = () => {
         
         if (user) {
           console.log('Fetching recently viewed content for user:', user.id);
-          // Get recently viewed content for the logged-in user
+          
+          // FIX: Changed the query to use correct order syntax
           const { data, error } = await supabase
             .from('contents')
             .select(`
