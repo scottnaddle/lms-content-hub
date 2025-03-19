@@ -17,33 +17,83 @@ const RecentlyViewedPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchRecentContent() {
+    async function fetchRecentViewedContent() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('contents')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (error) {
-          throw error;
+        
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Get recently viewed content for the logged-in user
+          const { data, error } = await supabase
+            .from('user_views')
+            .select('content_id, viewed_at, contents(*)')
+            .eq('user_id', user.id)
+            .order('viewed_at', { ascending: false })
+            .limit(20);
+            
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            // Transform the database data to ContentItem format
+            const formattedContent: ContentItem[] = data.map((item) => ({
+              id: item.contents.id,
+              title: item.contents.title,
+              description: item.contents.description || undefined,
+              type: item.contents.content_type as any,
+              thumbnail: item.contents.thumbnail_path || generateThumbnailUrl(item.contents.content_type),
+              dateAdded: item.viewed_at, // Use the view date instead of created_at
+              tags: item.contents.tags || [],
+            }));
+            
+            setRecentContent(formattedContent);
+          } else {
+            // If no viewed content, fall back to recently added content
+            const { data: recentData, error: recentError } = await supabase
+              .from('contents')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(20);
+              
+            if (recentError) throw recentError;
+            
+            const formattedContent: ContentItem[] = recentData.map((item: Tables<'contents'>) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description || undefined,
+              type: item.content_type as any,
+              thumbnail: item.thumbnail_path || generateThumbnailUrl(item.content_type),
+              dateAdded: item.created_at,
+              tags: item.tags || [],
+            }));
+            
+            setRecentContent(formattedContent);
+          }
+        } else {
+          // For anonymous users, show recent content
+          const { data, error } = await supabase
+            .from('contents')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(20);
+            
+          if (error) throw error;
+          
+          const formattedContent: ContentItem[] = data.map((item: Tables<'contents'>) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description || undefined,
+            type: item.content_type as any,
+            thumbnail: item.thumbnail_path || generateThumbnailUrl(item.content_type),
+            dateAdded: item.created_at,
+            tags: item.tags || [],
+          }));
+          
+          setRecentContent(formattedContent);
         }
-
-        // Transform the database data to ContentItem format
-        const formattedContent: ContentItem[] = data.map((item: Tables<'contents'>) => ({
-          id: item.id,
-          title: item.title,
-          description: item.description || undefined,
-          type: item.content_type as any,
-          thumbnail: item.thumbnail_path || generateThumbnailUrl(item.content_type),
-          dateAdded: item.created_at,
-          tags: item.tags || [],
-        }));
-
-        setRecentContent(formattedContent);
       } catch (error: any) {
-        console.error('Error fetching recent content:', error);
+        console.error('Error fetching recent viewed content:', error);
         toast({
           title: t('notFound'),
           description: error.message || t('contentNotFoundDesc'),
@@ -56,7 +106,7 @@ const RecentlyViewedPage: React.FC = () => {
       }
     }
 
-    fetchRecentContent();
+    fetchRecentViewedContent();
   }, [toast, t]);
 
   return (
@@ -71,7 +121,7 @@ const RecentlyViewedPage: React.FC = () => {
             <h1 className="font-semibold tracking-tight">{t('recentlyViewed')}</h1>
           </div>
           <p className="text-muted-foreground max-w-2xl">
-            {'Browse your recently uploaded content.'}
+            {t('recentlyViewedDescription')}
           </p>
         </div>
         

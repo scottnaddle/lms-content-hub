@@ -57,4 +57,10 @@ export const contentLibraryTranslations: TranslationsCollection = {
     uz: 'Elementlar mavjud emas',
     ko: '사용 가능한 항목이 없습니다',
   },
+  recentlyViewedDescription: {
+    en: 'Browse content you have recently viewed.',
+    ru: 'Просмотрите недавно просмотренный контент.',
+    uz: 'Siz yaqinda ko\'rgan contentni ko\'ring.',
+    ko: '최근에 본 콘텐츠를 확인해보세요.',
+  },
 };

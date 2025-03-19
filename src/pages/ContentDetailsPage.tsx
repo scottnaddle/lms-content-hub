@@ -47,10 +47,45 @@ const ContentDetailsPage: React.FC = () => {
     const getCurrentUser = async () => {
       const { data } = await supabase.auth.getUser();
       setCurrentUser(data.user?.id || null);
+      
+      // If user is logged in and content_id is available, record this view
+      if (data.user && id) {
+        try {
+          // Check if this view already exists for this user and content
+          const { data: existingView, error: viewCheckError } = await supabase
+            .from('user_views')
+            .select('*')
+            .eq('user_id', data.user.id)
+            .eq('content_id', id)
+            .maybeSingle();
+          
+          if (viewCheckError) throw viewCheckError;
+          
+          if (existingView) {
+            // Update the viewed_at timestamp
+            await supabase
+              .from('user_views')
+              .update({ viewed_at: new Date().toISOString() })
+              .eq('user_id', data.user.id)
+              .eq('content_id', id);
+          } else {
+            // Create a new view record
+            await supabase
+              .from('user_views')
+              .insert({
+                user_id: data.user.id,
+                content_id: id,
+                viewed_at: new Date().toISOString()
+              });
+          }
+        } catch (error) {
+          console.error('Error recording view:', error);
+        }
+      }
     };
     
     getCurrentUser();
-  }, []);
+  }, [id]);
   
   // 콘텐츠 상세 정보 가져오기
   useEffect(() => {
