@@ -21,9 +21,9 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
         // Increment view count
         await incrementViewCount(id);
         
-        // Get content data
+        // Get content data from the view to include creator information
         const { data, error } = await supabase
-          .from('contents')
+          .from('content_with_creator')
           .select('*')
           .eq('id', id)
           .single();
