@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ContentStats, ViewHistory } from '@/types/statistics';
+import { ContentStats, ViewHistory, TrendData, ContentComparison } from '@/types/statistics';
 
 export const StatisticsService = {
   /**
@@ -58,5 +58,44 @@ export const StatisticsService = {
     }
     
     return historyData;
+  },
+  
+  /**
+   * Generate mock trend data for the last 12 days
+   * TODO: Replace with actual data when available
+   */
+  generateTrendData(): TrendData[] {
+    const trendData: TrendData[] = [];
+    const currentDate = new Date();
+    
+    // Generate data for the last 12 days
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(currentDate);
+      date.setDate(date.getDate() - i);
+      
+      const formattedDate = `${date.getDate()}/${date.getMonth() + 1}`;
+      
+      trendData.push({
+        date: formattedDate,
+        views: Math.floor(Math.random() * 30) + 5,
+        downloads: Math.floor(Math.random() * 15) + 2
+      });
+    }
+    
+    return trendData;
+  },
+  
+  /**
+   * Generate mock content comparison data for radar chart
+   * TODO: Replace with actual data when available
+   */
+  generateContentComparisonData(contentTypes: string[]): ContentComparison[] {
+    return contentTypes.map(type => ({
+      type,
+      engagement: Math.floor(Math.random() * 80) + 20,
+      popularity: Math.floor(Math.random() * 80) + 20,
+      growth: Math.floor(Math.random() * 80) + 20,
+      retention: Math.floor(Math.random() * 80) + 20
+    }));
   }
 };

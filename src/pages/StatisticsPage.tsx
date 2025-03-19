@@ -7,7 +7,7 @@ import StatSummaryCards from '@/components/statistics/StatSummaryCards';
 import StatisticsTabs from '@/components/statistics/StatisticsTabs';
 
 const StatisticsPage: React.FC = () => {
-  const { stats, viewHistory, isLoading } = useStatistics();
+  const { stats, viewHistory, trendData, comparisonData, isLoading } = useStatistics();
   
   return (
     <PageLayout>
@@ -24,7 +24,12 @@ const StatisticsPage: React.FC = () => {
             <StatSummaryCards stats={stats} isLoading={isLoading} />
             
             {/* Charts */}
-            <StatisticsTabs stats={stats} viewHistory={viewHistory} />
+            <StatisticsTabs 
+              stats={stats} 
+              viewHistory={viewHistory} 
+              trendData={trendData}
+              comparisonData={comparisonData}
+            />
           </>
         )}
       </div>
