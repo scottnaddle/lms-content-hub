@@ -47,7 +47,7 @@ const RecentlyViewedPage: React.FC = () => {
         if (user) {
           console.log('Fetching recently viewed content for user:', user.id);
           
-          // FIX: Changed the query to use correct order syntax
+          // Fixed: Updated query to use the correct order syntax
           const { data, error } = await supabase
             .from('contents')
             .select(`
@@ -61,7 +61,7 @@ const RecentlyViewedPage: React.FC = () => {
               user_views!inner(viewed_at)
             `)
             .eq('user_views.user_id', user.id)
-            .order('user_views.viewed_at', { ascending: false })
+            .order('viewed_at', { ascending: false, foreignTable: 'user_views' })
             .limit(20);
             
           if (error) {
