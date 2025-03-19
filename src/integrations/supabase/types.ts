@@ -165,6 +165,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      record_content_view: {
+        Args: {
+          p_user_id: string
+          p_content_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

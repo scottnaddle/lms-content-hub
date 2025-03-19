@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -16,6 +17,7 @@ import { Chip } from '@/components/ui/chip';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContentDetails {
   id: string;
@@ -37,6 +39,7 @@ const ContentDetailsPage: React.FC = () => {
   const { type, id } = useParams<{ type: string; id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [content, setContent] = useState<ContentDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -51,8 +54,8 @@ const ContentDetailsPage: React.FC = () => {
       // If user is logged in and content_id is available, record this view
       if (data.user && id) {
         try {
-          // We must use a raw query approach since TypeScript doesn't know about user_views
-          const { data: viewData, error: viewCheckError } = await supabase
+          // Call the RPC function with the correct parameter structure
+          const { error: viewCheckError } = await supabase
             .rpc('record_content_view', { 
               p_user_id: data.user.id,
               p_content_id: id
@@ -79,7 +82,11 @@ const ContentDetailsPage: React.FC = () => {
         setIsLoading(true);
         
         // Fix: Cast id to UUID type to match the parameter type
-        await supabase.rpc('increment_view_count', { content_id: id as unknown as UUID });
+        const { error: incrementError } = await supabase.rpc('increment_view_count', { content_id: id });
+        
+        if (incrementError) {
+          console.error('Error incrementing view count:', incrementError);
+        }
         
         // 콘텐츠 데이터 가져오기
         const { data, error } = await supabase
@@ -122,8 +129,8 @@ const ContentDetailsPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching content:', error);
         toast({
-          title: "오류 발생",
-          description: "콘텐츠를 불러오는 중 오류가 발생했습니다.",
+          title: t('notFound'),
+          description: t('contentNotFoundDesc'),
           variant: "destructive"
         });
       } finally {
@@ -132,14 +139,18 @@ const ContentDetailsPage: React.FC = () => {
     };
     
     fetchContent();
-  }, [id, toast]);
+  }, [id, toast, t]);
   
   const handleDownload = async () => {
     if (!content || !content.fileUrl) return;
     
     try {
-      // Fix: Cast id to UUID type to match the parameter type
-      await supabase.rpc('increment_download_count', { content_id: content.id as unknown as UUID });
+      // Fix: Use the RPC method with correct parameter structure
+      const { error: downloadError } = await supabase.rpc('increment_download_count', { content_id: content.id });
+      
+      if (downloadError) {
+        console.error('Error incrementing download count:', downloadError);
+      }
       
       // 파일 다운로드
       window.open(content.fileUrl, '_blank');
