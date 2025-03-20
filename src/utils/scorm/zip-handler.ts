@@ -19,7 +19,13 @@ export const downloadAndLoadZip = async (
   console.log('Attempting to download SCORM package from URL:', fileUrl);
   
   try {
-    const response = await fetch(fileUrl);
+    const response = await fetch(fileUrl, {
+      method: 'GET',
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to download SCORM package: ${response.statusText} (${response.status})`);
@@ -28,6 +34,8 @@ export const downloadAndLoadZip = async (
     // Get total file size for progress calculation
     const contentLength = response.headers.get('content-length');
     const total = contentLength ? parseInt(contentLength, 10) : 0;
+    
+    console.log('Download started, content length:', total);
     
     // If we can't determine size or no progress callback is provided, fall back to regular download
     if (!total || !onProgress) {
@@ -58,6 +66,7 @@ export const downloadAndLoadZip = async (
       const { done, value } = await reader.read();
       
       if (done) {
+        console.log('Download completed, received total bytes:', receivedLength);
         break;
       }
       
@@ -81,14 +90,27 @@ export const downloadAndLoadZip = async (
     const zipData = allChunks.buffer;
     console.log('SCORM package downloaded with progress tracking, size:', zipData.byteLength);
     
+    if (zipData.byteLength === 0) {
+      throw new Error('Downloaded file is empty (0 bytes)');
+    }
+    
     const zip = new JSZip();
-    const loadedZip = await zip.loadAsync(zipData);
-    
-    // Report completion
-    onProgress(100);
-    
-    return { zip: loadedZip, zipData };
-  } catch (error) {
+    try {
+      const loadedZip = await zip.loadAsync(zipData);
+      
+      if (Object.keys(loadedZip.files).length === 0) {
+        throw new Error('Archive is empty or not a valid ZIP file');
+      }
+      
+      // Report completion
+      onProgress(100);
+      
+      return { zip: loadedZip, zipData };
+    } catch (error: any) {
+      console.error('Failed to load ZIP:', error);
+      throw new Error(`파일을 압축 해제하는데 실패했습니다: ${error.message}`);
+    }
+  } catch (error: any) {
     console.error('Error downloading SCORM package:', error);
     throw error;
   }

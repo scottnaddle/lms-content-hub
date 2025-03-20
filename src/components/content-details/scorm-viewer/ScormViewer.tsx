@@ -26,6 +26,16 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     extractedFiles
   } = useScormLoader(fileUrl);
   
+  console.log('ScormViewer 상태:', { 
+    error, 
+    isLoading, 
+    entryPointUrl: entryPointUrl ? '[URL 존재]' : 'null',
+    stage,
+    downloadProgress,
+    extractionProgress,
+    filesCount: extractedFiles.size
+  });
+  
   return (
     <div className="w-full flex flex-col space-y-4">
       {isLoading && (

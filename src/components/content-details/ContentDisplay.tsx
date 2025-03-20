@@ -1,3 +1,4 @@
+
 import React from 'react';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
@@ -19,6 +20,8 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({
   title,
   onDownload
 }) => {
+  console.log('ContentDisplay: 콘텐츠 타입 및 파일 URL', { contentType, fileUrl });
+  
   return (
     <div className="glass-panel p-6">
       {contentType === 'video' && (

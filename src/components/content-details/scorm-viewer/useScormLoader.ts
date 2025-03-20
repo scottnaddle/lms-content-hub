@@ -44,11 +44,11 @@ export const useScormLoader = (fileUrl?: string) => {
         
         console.log('Parsed file path for signed URL:', actualPath);
         
-        // 서명된 URL 생성
+        // 서명된 URL 생성 - 유효 시간을 10분으로 늘림
         const { data: signedUrlData, error: signedUrlError } = await supabase
           .storage
           .from('content_files')
-          .createSignedUrl(actualPath, 60); // 60초 동안 유효
+          .createSignedUrl(actualPath, 600); // 10분 동안 유효
 
         if (signedUrlError || !signedUrlData?.signedUrl) {
           console.error('Failed to get signed URL:', signedUrlError);
@@ -108,6 +108,7 @@ export const useScormLoader = (fileUrl?: string) => {
           return;
         }
         
+        console.log('Setting entry point URL:', entryUrl);
         setEntryPointUrl(entryUrl);
         setStage('complete');
         setIsLoading(false);
@@ -125,6 +126,9 @@ export const useScormLoader = (fileUrl?: string) => {
     
     return () => {
       isMounted = false;
+      if (extractedFiles.size > 0) {
+        cleanupScormResources(extractedFiles);
+      }
     };
   }, [fileUrl]);
 
@@ -137,4 +141,12 @@ export const useScormLoader = (fileUrl?: string) => {
     extractionProgress,
     stage
   };
+};
+
+// SCORM 리소스 정리 함수
+const cleanupScormResources = (extractedFiles: Map<string, string>) => {
+  extractedFiles.forEach(url => {
+    URL.revokeObjectURL(url);
+  });
+  extractedFiles.clear();
 };

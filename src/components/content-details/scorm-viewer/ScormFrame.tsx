@@ -20,6 +20,8 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
   useEffect(() => {
     if (!entryPointUrl || !iframeRef.current) return;
     
+    console.log('ScormFrame: 진입점 URL을 iframe에 설정합니다.', entryPointUrl);
+    
     const iframe = iframeRef.current;
     
     const handleIframeLoad = () => {
@@ -39,9 +41,11 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     // iframe 로드 이벤트 핸들러 설정
     iframe.addEventListener('load', handleIframeLoad);
     
-    // iframe src 설정
-    console.log('Setting iframe source to:', entryPointUrl);
-    iframe.src = entryPointUrl;
+    // iframe src 설정 - timeout으로 지연 처리
+    setTimeout(() => {
+      console.log('Setting iframe source to:', entryPointUrl);
+      iframe.src = entryPointUrl;
+    }, 100);
     
     return () => {
       iframe.removeEventListener('load', handleIframeLoad);
@@ -63,6 +67,7 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
       className="w-full h-full"
       sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      data-testid="scorm-iframe"
     />
   );
 };
