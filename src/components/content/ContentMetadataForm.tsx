@@ -12,6 +12,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
+import TagInput from './TagInput';
 
 interface ContentMetadataFormProps {
   title: string;
@@ -81,11 +82,10 @@ const ContentMetadataForm: React.FC<ContentMetadataFormProps> = ({
 
         <div className="space-y-2">
           <Label htmlFor="tags">{t('tagsWithSeparator')}</Label>
-          <Input 
-            id="tags" 
-            placeholder={t('tagsExample')} 
+          <TagInput 
             value={tags}
-            onChange={(e) => onTagsChange(e.target.value)}
+            onChange={onTagsChange}
+            placeholder={t('tagsExample')}
           />
         </div>
       </div>
