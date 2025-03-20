@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { injectScormApi } from '@/utils/scorm';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,7 +16,8 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
   extractedFiles 
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [isFrameLoading, setIsFrameLoading] = React.useState(true);
+  const [isFrameLoading, setIsFrameLoading] = useState(true);
+  const [injectionAttempts, setInjectionAttempts] = useState(0);
   
   // SCORM API 주입 및 iframe 로드 처리
   useEffect(() => {
@@ -25,17 +26,39 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     console.log('ScormFrame: Setting iframe source to:', entryPointUrl);
     
     const iframe = iframeRef.current;
+    let apiInjected = false;
     
+    // iframe이 로드될 때 SCORM API 주입
     const handleIframeLoad = () => {
       try {
         // iframe이 로드된 후 SCORM API 주입
         console.log('Iframe loaded, injecting SCORM API');
         injectScormApi(iframe);
+        apiInjected = true;
         setIsFrameLoading(false);
-        toast({
-          title: "SCORM 콘텐츠 로드 완료",
-          description: "SCORM 패키지가 성공적으로 로드되었습니다.",
-        });
+        
+        // SCORM API가 제대로 주입되었는지 확인
+        setTimeout(() => {
+          try {
+            const iframeWindow = iframe.contentWindow;
+            if (iframeWindow && (iframeWindow as any).API) {
+              console.log('SCORM API validation successful');
+              toast({
+                title: "SCORM 콘텐츠 로드 완료",
+                description: "SCORM 패키지가 성공적으로 로드되었습니다.",
+              });
+            } else {
+              console.warn('SCORM API not found after injection');
+              if (injectionAttempts < 3) {
+                console.log(`Retrying API injection (attempt ${injectionAttempts + 1})`);
+                setInjectionAttempts(prev => prev + 1);
+                injectScormApi(iframe);
+              }
+            }
+          } catch (err) {
+            console.error('Error validating SCORM API:', err);
+          }
+        }, 500);
       } catch (err) {
         console.error('Failed to inject SCORM API:', err);
       }
@@ -44,16 +67,26 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     // iframe 로드 이벤트 핸들러 설정
     iframe.addEventListener('load', handleIframeLoad);
     
-    // iframe src 설정 - timeout으로 지연 처리 (더 긴 시간으로 조정)
+    // iframe src 설정 - timeout으로 지연 처리 (DOM이 먼저 준비되도록)
     setTimeout(() => {
       console.log('Setting iframe source to:', entryPointUrl);
       iframe.src = entryPointUrl;
+      
+      // 5초 후에도 로딩이 완료되지 않으면 로딩 상태 해제 (UI 차단 방지)
+      const timeoutId = setTimeout(() => {
+        if (isFrameLoading && !apiInjected) {
+          console.log('Loading timeout reached, forcing UI to show iframe');
+          setIsFrameLoading(false);
+        }
+      }, 5000);
+      
+      return () => clearTimeout(timeoutId);
     }, 300);
     
     return () => {
       iframe.removeEventListener('load', handleIframeLoad);
     };
-  }, [entryPointUrl]);
+  }, [entryPointUrl, injectionAttempts]);
 
   return (
     <div className="relative w-full h-full overflow-hidden rounded-lg">

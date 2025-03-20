@@ -28,10 +28,11 @@ export const useScormLoader = (fileUrl?: string) => {
     console.log('Getting signed URL for:', path);
     
     try {
+      // 더 긴 유효 시간 (30분)으로 서명된 URL 요청
       const { data, error } = await supabase
         .storage
         .from('content_files')
-        .createSignedUrl(path, 600); // 10 minutes
+        .createSignedUrl(path, 1800);
       
       if (error) throw error;
       if (!data?.signedUrl) throw new Error('Failed to get signed URL');
@@ -64,7 +65,7 @@ export const useScormLoader = (fileUrl?: string) => {
       console.log('Parsed file path:', actualPath);
       
       const signedUrl = await getSignedUrl(actualPath);
-      console.log('Successfully got signed URL');
+      console.log('Successfully got signed URL with longer expiration');
       
       // Extract SCORM package with progress tracking
       const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(
@@ -117,9 +118,10 @@ export const useScormLoader = (fileUrl?: string) => {
     }
   }, [fileUrl, parseFilePath, getSignedUrl]);
   
-  // Initial load and when fileUrl changes
+  // Initial load and when fileUrl changes or retry is triggered
   useEffect(() => {
     loadScormPackage();
+    
     // Cleanup function
     return () => {
       // Reset states when component unmounts or fileUrl changes
@@ -130,7 +132,7 @@ export const useScormLoader = (fileUrl?: string) => {
     };
   }, [loadScormPackage, retryCount]);
   
-  // Retry function with exponential backoff
+  // Retry function
   const retryLoading = useCallback(() => {
     setRetryCount(prev => prev + 1);
     toast({
