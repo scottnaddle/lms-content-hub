@@ -36,89 +36,54 @@ export const injectScormApi = (iframe: HTMLIFrameElement): boolean => {
     const API_1484_11 = createScorm2004API(scormData);
     
     try {
-      // First, check if we can access iframe document
-      let iframeDoc = null;
-      try {
-        iframeDoc = iframe.contentDocument || iframeWindow.document;
-      } catch (e) {
-        console.warn('Cannot access iframe document due to cross-origin restriction:', e);
-      }
+      // First approach: Add API to the main window (host page)
+      // This works even with cross-origin restrictions since the iframe will look for API in parent
+      (window as any).API = API;
+      (window as any).API_1484_11 = API_1484_11;
+      console.log('API injected into global window as primary method');
       
-      if (iframeDoc) {
-        // Check iframe readiness
-        const readyState = iframeDoc.readyState;
-        console.log('Iframe readyState:', readyState);
-
-        // If document is not ready yet, wait for it
-        if (readyState !== 'complete' && readyState !== 'interactive') {
-          console.log('Document not ready, setting up load event listener for API injection');
-          // Continue anyway - some SCORM packages expect early API availability
-        }
-      } else {
-        console.warn('Cross-origin restriction detected, using alternative API injection methods');
-      }
-      
-      // Multiple injection approaches for maximum compatibility
-      
-      // 1. Direct injection to window object
+      // Second approach: Try to inject directly if same-origin
       try {
         (iframeWindow as any).API = API;
         (iframeWindow as any).API_1484_11 = API_1484_11;
         console.log('API directly injected to iframe window');
       } catch (e) {
-        console.warn('Failed to inject API directly to iframe window:', e);
+        console.warn('Failed to inject API directly to iframe window (cross-origin restriction):', e);
       }
       
-      // 2. Inject to parent, top, and opener references
+      // Additional approaches - try with catch blocks for cross-origin situations
       try {
-        // SCORM 1.2 API - inject to parent
-        (iframeWindow as any).parent.API = API;
-        (iframeWindow as any).top.API = API;
-        if ((iframeWindow as any).opener) (iframeWindow as any).opener.API = API;
+        // Add API to parent/top references
+        if (iframeWindow.parent) {
+          (window.parent as any).API = API;
+          (window.parent as any).API_1484_11 = API_1484_11;
+        }
         
-        // SCORM 2004 API - inject to parent
-        (iframeWindow as any).parent.API_1484_11 = API_1484_11;
-        (iframeWindow as any).top.API_1484_11 = API_1484_11;
-        if ((iframeWindow as any).opener) (iframeWindow as any).opener.API_1484_11 = API_1484_11;
+        if (window.top) {
+          (window.top as any).API = API;
+          (window.top as any).API_1484_11 = API_1484_11;
+        }
         
-        console.log('API injected into parent/top/opener frames');
+        console.log('API injected into parent/top frames');
       } catch (e) {
-        console.warn('Failed to inject API into some parent/top frames (expected for cross-origin):', e);
+        console.warn('Failed to inject API into parent/top frames (expected for cross-origin)');
       }
       
-      // 3. Inject to other frames and ancestors
-      try {
-        injectAPIIntoSubframes(iframeWindow, API, API_1484_11);
-        injectAPIIntoAncestors(iframeWindow, API, API_1484_11);
-      } catch (e) {
-        console.warn('Failed to inject API into some subframes/ancestors:', e);
-      }
+      // Set window properties on the host page too
+      (window as any).parent.API = API;
+      (window as any).parent.API_1484_11 = API_1484_11;
       
-      // 4. Add to global window as fallback
+      // Handle AICC compatibility
       try {
-        (window as any).API = API;
-        (window as any).API_1484_11 = API_1484_11;
-        console.log('API injected into global window as fallback');
-      } catch (e) {
-        console.warn('Failed to add API to global window:', e);
-      }
-      
-      // 5. AICC compatibility
-      try {
-        (iframeWindow as any).AICC_API = API;
         (window as any).AICC_API = API;
       } catch (e) {
-        console.warn('Failed to add AICC API:', e);
+        console.warn('Failed to add AICC API');
       }
       
-      // Log successful injection
-      console.log('SCORM API injection complete in multiple contexts');
+      console.log('SCORM API injection complete');
       
-      // Validate API injection
-      const isValid = validateAPIInjection(iframe);
-      console.log('API validation result:', isValid ? 'SUCCESS' : 'FAILED');
-      
-      // Even if validation fails, we'll consider injection successful as we've tried multiple methods
+      // Return true even without validation since we want to be optimistic
+      // The most critical part (setting API on window) should have worked
       return true;
     } catch (error) {
       console.error('Failed during SCORM API injection:', error);

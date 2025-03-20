@@ -19,10 +19,12 @@ export const downloadAndLoadZip = async (
   console.log('Attempting to download SCORM package from URL:', fileUrl);
   
   try {
-    // Cache-busting 파라미터 추가
+    // Add stronger cache-busting with unique identifier
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000000);
     const cacheBustedUrl = fileUrl.includes('?') 
-      ? `${fileUrl}&cacheBust=${Date.now()}`
-      : `${fileUrl}?cacheBust=${Date.now()}`;
+      ? `${fileUrl}&cacheBust=${timestamp}-${random}`
+      : `${fileUrl}?cacheBust=${timestamp}-${random}`;
     
     const response = await fetch(cacheBustedUrl, {
       method: 'GET',
@@ -31,7 +33,8 @@ export const downloadAndLoadZip = async (
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
-      }
+      },
+      credentials: 'omit' // Don't send credentials for cross-origin requests
     });
     
     if (!response.ok) {
@@ -132,8 +135,8 @@ export const extractAllFiles = async (
   // Report initial extraction progress
   if (onProgress) onProgress(0);
   
-  // Process files in parallel with limited concurrency
-  const batchSize = 10;
+  // Process files in smaller batches for better browser performance
+  const batchSize = 5; // Reduced batch size
   for (let i = 0; i < fileEntries.length; i += batchSize) {
     const batch = fileEntries.slice(i, i + batchSize);
     
@@ -142,7 +145,11 @@ export const extractAllFiles = async (
         // 파일 내용을 Blob으로 추출
         const content = await file.async('blob');
         const contentType = getContentType(filename);
+        
+        // Create a blob with the correct MIME type
         const blob = new Blob([content], { type: contentType });
+        
+        // Create a URL for the blob
         const blobUrl = URL.createObjectURL(blob);
         
         // 파일 경로와 Blob URL을 맵에 저장
@@ -150,7 +157,7 @@ export const extractAllFiles = async (
         
         // 디버깅을 위해 첫 20개 파일 경로 출력
         if (extractedFiles.size <= 20) {
-          console.log(`Extracted file ${extractedFiles.size}: ${filename}`);
+          console.log(`Extracted file ${extractedFiles.size}: ${filename} -> ${contentType}`);
         }
       } catch (err) {
         console.error(`Failed to extract file: ${filename}`, err);
@@ -163,12 +170,17 @@ export const extractAllFiles = async (
         onProgress(progress);
       }
     }));
+    
+    // Small delay between batches to let the browser breathe
+    await new Promise(resolve => setTimeout(resolve, 10));
   }
   
   console.log('Extraction complete, total files:', extractedFiles.size);
   
   // Log important file types (html, js)
-  const htmlFiles = Array.from(extractedFiles.keys()).filter(f => f.endsWith('.html') || f.endsWith('.htm'));
+  const htmlFiles = Array.from(extractedFiles.keys()).filter(f => 
+    f.toLowerCase().endsWith('.html') || f.toLowerCase().endsWith('.htm')
+  );
   console.log('HTML files count:', htmlFiles.length);
   htmlFiles.slice(0, 10).forEach(f => console.log('HTML file:', f));
   

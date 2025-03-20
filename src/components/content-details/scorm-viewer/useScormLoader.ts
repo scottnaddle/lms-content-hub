@@ -28,16 +28,16 @@ export const useScormLoader = (fileUrl?: string) => {
     console.log('Getting signed URL for:', path);
     
     try {
-      // 더 긴 유효 시간 (30분)으로 서명된 URL 요청
+      // 더 긴 유효 시간 (1시간)으로 서명된 URL 요청
       const { data, error } = await supabase
         .storage
         .from('content_files')
-        .createSignedUrl(path, 1800);
+        .createSignedUrl(path, 3600); // 1시간 동안 유효
       
       if (error) throw error;
       if (!data?.signedUrl) throw new Error('Failed to get signed URL');
       
-      console.log('Obtained signed URL with 30 min expiration');
+      console.log('Obtained signed URL with 1-hour expiration');
       return data.signedUrl;
     } catch (err: any) {
       console.error('Signed URL error:', err);
@@ -119,7 +119,7 @@ export const useScormLoader = (fileUrl?: string) => {
       setTimeout(() => {
         setStage('complete');
         setIsLoading(false);
-      }, 1000); // Increased from 500ms to 1000ms
+      }, 2000); // Increased delay to give iframe more time to load
       
     } catch (err: any) {
       console.error("SCORM 로드 오류:", err);
