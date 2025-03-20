@@ -13,6 +13,7 @@ import EditContentPage from "./pages/EditContentPage";
 import RecentlyViewedPage from "./pages/RecentlyViewedPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import SearchPage from "./pages/SearchPage";
+import TagsPage from "./pages/TagsPage";
 import AuthPage from "./pages/AuthPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import NotFound from "./pages/NotFound";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route path="/statistics" element={<StatisticsPage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/tags" element={<TagsPage />} />
               <Route 
                 path="/upload" 
                 element={
