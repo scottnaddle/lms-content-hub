@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Calendar, FileText } from 'lucide-react';
+import { Calendar, FileText, Eye } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContentMetadataProps {
   formattedDate: string;
@@ -13,6 +14,8 @@ const ContentMetadata: React.FC<ContentMetadataProps> = ({
   contentType, 
   viewCount 
 }) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="flex items-center gap-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -26,7 +29,8 @@ const ContentMetadata: React.FC<ContentMetadataProps> = ({
       </div>
       
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>조회수: {viewCount}</span>
+        <Eye className="h-4 w-4" />
+        <span>{t('views')}: {viewCount}</span>
       </div>
     </div>
   );

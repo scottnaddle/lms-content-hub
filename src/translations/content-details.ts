@@ -39,4 +39,22 @@ export const contentDetailsTranslations: TranslationsCollection = {
     uz: 'Ko\'rish uchun yuklab oling',
     ko: '다운로드하여 보기',
   },
+  contentNotFound: {
+    en: 'Content not found',
+    ru: 'Контент не найден',
+    uz: 'Kontent topilmadi',
+    ko: '콘텐츠를 찾을 수 없음',
+  },
+  contentNotFoundDesc: {
+    en: 'The content you requested does not exist or has been deleted.',
+    ru: 'Запрошенный вами контент не существует или был удален.',
+    uz: 'Siz so\'ragan kontent mavjud emas yoki o\'chirilgan.',
+    ko: '요청하신 콘텐츠가 존재하지 않거나 삭제되었습니다.',
+  },
+  goBack: {
+    en: 'Go back',
+    ru: 'Назад',
+    uz: 'Orqaga qaytish',
+    ko: '뒤로 가기',
+  },
 };

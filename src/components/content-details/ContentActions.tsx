@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, Download, Edit, Trash2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContentActionsProps {
   isOwner: boolean;
@@ -18,20 +19,23 @@ const ContentActions: React.FC<ContentActionsProps> = ({
   onDelete, 
   isDeleting 
 }) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="flex items-center gap-2">
       <Button variant="outline" size="sm" className="gap-1">
         <Share2 className="h-4 w-4" />
-        <span>공유</span>
+        <span>{t('share')}</span>
       </Button>
       <Button variant="outline" size="sm" className="gap-1" onClick={onDownload}>
         <Download className="h-4 w-4" />
-        <span>다운로드 ({downloadCount})</span>
+        <span>{t('download')} ({downloadCount})</span>
       </Button>
       {isOwner && (
         <>
           <Button variant="outline" size="sm">
             <Edit className="h-4 w-4" />
+            <span className="sr-only">{t('edit')}</span>
           </Button>
           <Button 
             variant="outline" 
@@ -41,6 +45,7 @@ const ContentActions: React.FC<ContentActionsProps> = ({
             disabled={isDeleting}
           >
             <Trash2 className="h-4 w-4" />
+            <span className="sr-only">{t('delete')}</span>
           </Button>
         </>
       )}
