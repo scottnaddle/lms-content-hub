@@ -1,9 +1,8 @@
-
 import React from 'react';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
 import DocumentViewer from './DocumentViewer';
-import ScormViewer from './ScormViewer';
+import ScormViewer from './scorm-viewer';
 
 interface ContentDisplayProps {
   contentType: 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
