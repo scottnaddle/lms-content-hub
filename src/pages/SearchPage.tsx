@@ -130,9 +130,17 @@ const SearchPage: React.FC = () => {
         )}
         
         <ContentGrid 
-          contents={results} 
+          items={results.map(item => ({
+            id: item.id,
+            title: item.title,
+            description: item.description || '',
+            type: item.content_type,
+            thumbnail: item.thumbnailUrl || '',
+            dateAdded: item.created_at,
+            tags: item.tags || []
+          }))}
           isLoading={isLoading} 
-          emptyMessage={t('noSearchResults')}
+          emptyMessage={t('noSearchResults') || t('noContent')}
         />
       </div>
     </PageLayout>

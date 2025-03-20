@@ -28,7 +28,8 @@ export const contentLibraryTranslations: ContentLibraryTranslations = {
     allTags: "All Tags",
     recent: "Recent",
     noTagsFound: "No tags found",
-    filteringByTag: "Filtering by tag"
+    filteringByTag: "Filtering by tag",
+    noSearchResults: "No search results found"
   },
   ko: {
     allContent: "모든 콘텐츠",
@@ -56,6 +57,7 @@ export const contentLibraryTranslations: ContentLibraryTranslations = {
     allTags: "모든 태그",
     recent: "최근",
     noTagsFound: "태그를 찾을 수 없습니다",
-    filteringByTag: "태그로 필터링 중"
+    filteringByTag: "태그로 필터링 중",
+    noSearchResults: "검색 결과가 없습니다"
   },
 };
