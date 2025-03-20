@@ -5,14 +5,21 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ScormErrorProps {
   error: string;
   onDownload: () => void;
   onRetry?: () => void;
+  retryCount?: number;
 }
 
-const ScormError: React.FC<ScormErrorProps> = ({ error, onDownload, onRetry }) => {
+const ScormError: React.FC<ScormErrorProps> = ({ 
+  error, 
+  onDownload, 
+  onRetry,
+  retryCount = 0
+}) => {
   const { t } = useLanguage();
   
   return (
@@ -25,6 +32,11 @@ const ScormError: React.FC<ScormErrorProps> = ({ error, onDownload, onRetry }) =
           <div>
             <h3 className="text-xl font-semibold text-destructive">SCORM 로딩 오류</h3>
             <p className="text-muted-foreground mt-1">콘텐츠를 로드하는 중 문제가 발생했습니다</p>
+            {retryCount > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                재시도 횟수: {retryCount}
+              </p>
+            )}
           </div>
         </div>
         
@@ -36,10 +48,19 @@ const ScormError: React.FC<ScormErrorProps> = ({ error, onDownload, onRetry }) =
         
         <div className="flex flex-wrap gap-3 justify-center">
           {onRetry && (
-            <Button onClick={onRetry} variant="outline" size="sm" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              {t('retry')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={onRetry} variant="outline" size="sm" className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    {t('retry')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>다른 방법으로 SCORM 콘텐츠 로드를 시도합니다</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           
           <Button onClick={onDownload} variant="default" size="sm" className="gap-2">

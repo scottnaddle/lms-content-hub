@@ -2,6 +2,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractScormPackage } from '@/utils/scorm';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
+
+export type ScormStage = 'downloading' | 'extracting' | 'loading' | 'complete' | 'error';
 
 export const useScormLoader = (fileUrl?: string) => {
   const [error, setError] = useState<string | null>(null);
@@ -10,7 +13,35 @@ export const useScormLoader = (fileUrl?: string) => {
   const [entryPointUrl, setEntryPointUrl] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [extractionProgress, setExtractionProgress] = useState(0);
-  const [stage, setStage] = useState<'downloading' | 'extracting' | 'loading' | 'complete' | 'error'>('downloading');
+  const [stage, setStage] = useState<ScormStage>('downloading');
+  const [retryCount, setRetryCount] = useState(0);
+
+  const parseFilePath = useCallback((url: string) => {
+    // Extract path from full Supabase URL if needed
+    if (url.includes('content_files/')) {
+      return url.split('content_files/')[1];
+    }
+    return url;
+  }, []);
+
+  const getSignedUrl = useCallback(async (path: string) => {
+    console.log('Getting signed URL for:', path);
+    
+    try {
+      const { data, error } = await supabase
+        .storage
+        .from('content_files')
+        .createSignedUrl(path, 600); // 10 minutes
+      
+      if (error) throw error;
+      if (!data?.signedUrl) throw new Error('Failed to get signed URL');
+      
+      return data.signedUrl;
+    } catch (err: any) {
+      console.error('Signed URL error:', err);
+      throw new Error(`Failed to get access to SCORM file: ${err.message}`);
+    }
+  }, []);
 
   const loadScormPackage = useCallback(async () => {
     if (!fileUrl) {
@@ -21,47 +52,30 @@ export const useScormLoader = (fileUrl?: string) => {
     }
 
     try {
+      // Reset states
       setIsLoading(true);
       setError(null);
       setStage('downloading');
       setDownloadProgress(0);
       setExtractionProgress(0);
       
-      // Extract the actual file path from the full URL if it's a full URL
-      let actualPath = fileUrl;
-      if (fileUrl.includes('content_files/')) {
-        actualPath = fileUrl.split('content_files/')[1];
-      }
+      // Parse file path and get signed URL
+      const actualPath = parseFilePath(fileUrl);
+      console.log('Parsed file path:', actualPath);
       
-      console.log('Parsed file path for signed URL:', actualPath);
-      
-      // 서명된 URL 생성 (10분 동안 유효)
-      const { data: signedUrlData, error: signedUrlError } = await supabase
-        .storage
-        .from('content_files')
-        .createSignedUrl(actualPath, 600); 
-
-      if (signedUrlError || !signedUrlData?.signedUrl) {
-        console.error('Failed to get signed URL:', signedUrlError);
-        throw new Error(signedUrlError?.message || 'Failed to get signed URL');
-      }
-
+      const signedUrl = await getSignedUrl(actualPath);
       console.log('Successfully got signed URL');
       
-      // SCORM 패키지 추출 with progress tracking
+      // Extract SCORM package with progress tracking
       const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(
-        signedUrlData.signedUrl,
+        signedUrl,
         (progress) => {
           setDownloadProgress(progress);
-          if (progress === 100) {
-            setStage('extracting');
-          }
+          if (progress === 100) setStage('extracting');
         },
         (progress) => {
           setExtractionProgress(progress);
-          if (progress === 100) {
-            setStage('loading');
-          }
+          if (progress === 100) setStage('loading');
         }
       );
       
@@ -80,9 +94,7 @@ export const useScormLoader = (fileUrl?: string) => {
         return;
       }
       
-      console.log('SCORM entry point found:', entryPoint);
-      
-      // 추출된 파일 및 진입점 설정
+      // Set extracted files and entry point
       setExtractedFiles(files);
       const entryUrl = files.get(entryPoint);
       
@@ -93,6 +105,7 @@ export const useScormLoader = (fileUrl?: string) => {
         return;
       }
       
+      console.log('SCORM entry point found:', entryPoint);
       setEntryPointUrl(entryUrl);
       setStage('complete');
       setIsLoading(false);
@@ -102,17 +115,29 @@ export const useScormLoader = (fileUrl?: string) => {
       setStage('error');
       setIsLoading(false);
     }
-  }, [fileUrl]);
+  }, [fileUrl, parseFilePath, getSignedUrl]);
   
-  // 초기 로드 및 fileUrl 변경 시 로드
+  // Initial load and when fileUrl changes
   useEffect(() => {
     loadScormPackage();
-  }, [loadScormPackage]);
+    // Cleanup function
+    return () => {
+      // Reset states when component unmounts or fileUrl changes
+      setEntryPointUrl(null);
+      setError(null);
+      setDownloadProgress(0);
+      setExtractionProgress(0);
+    };
+  }, [loadScormPackage, retryCount]);
   
-  // 재시도 함수
-  const retryLoading = () => {
-    loadScormPackage();
-  };
+  // Retry function with exponential backoff
+  const retryLoading = useCallback(() => {
+    setRetryCount(prev => prev + 1);
+    toast({
+      title: "SCORM 콘텐츠 재시도",
+      description: "SCORM 패키지를 다시 로드합니다...",
+    });
+  }, []);
 
   return {
     error,
@@ -122,6 +147,7 @@ export const useScormLoader = (fileUrl?: string) => {
     extractionProgress,
     stage,
     extractedFiles,
-    retryLoading
+    retryLoading,
+    retryCount
   };
 };

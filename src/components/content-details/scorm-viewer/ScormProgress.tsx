@@ -1,12 +1,10 @@
-
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { 
   Loader2, Download, FileArchive, Play
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-type ScormStage = 'downloading' | 'extracting' | 'loading' | 'complete' | 'error';
+import { ScormStage } from './useScormLoader';
 
 interface ScormProgressProps {
   stage: ScormStage;

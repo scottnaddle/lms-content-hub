@@ -25,7 +25,8 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     extractionProgress,
     stage,
     extractedFiles,
-    retryLoading
+    retryLoading,
+    retryCount
   } = useScormLoader(fileUrl);
   
   // Debug logging
@@ -36,7 +37,8 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     stage,
     downloadProgress,
     extractionProgress,
-    filesCount: extractedFiles.size
+    filesCount: extractedFiles.size,
+    retryCount
   });
   
   // Cleanup resources on unmount
@@ -64,6 +66,7 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
           error={error} 
           onDownload={onDownload}
           onRetry={retryLoading}
+          retryCount={retryCount}
         />
       )}
       
