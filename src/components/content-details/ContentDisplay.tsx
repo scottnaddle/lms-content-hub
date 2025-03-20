@@ -20,7 +20,7 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({
   title,
   onDownload
 }) => {
-  console.log('ContentDisplay: 콘텐츠 타입 및 파일 URL', { contentType, fileUrl });
+  console.log('ContentDisplay: Content type and file URL', { contentType, fileUrl });
   
   return (
     <div className="glass-panel p-6">

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { injectScormApi, cleanupScormResources } from '@/utils/scorm';
+import { injectScormApi } from '@/utils/scorm';
 import { toast } from '@/components/ui/use-toast';
 
 interface ScormFrameProps {
@@ -20,7 +20,7 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
   useEffect(() => {
     if (!entryPointUrl || !iframeRef.current) return;
     
-    console.log('ScormFrame: 진입점 URL을 iframe에 설정합니다.', entryPointUrl);
+    console.log('ScormFrame: Setting iframe source to:', entryPointUrl);
     
     const iframe = iframeRef.current;
     
@@ -41,24 +41,16 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     // iframe 로드 이벤트 핸들러 설정
     iframe.addEventListener('load', handleIframeLoad);
     
-    // iframe src 설정 - timeout으로 지연 처리
+    // iframe src 설정 - timeout으로 지연 처리 (더 긴 시간으로 조정)
     setTimeout(() => {
       console.log('Setting iframe source to:', entryPointUrl);
       iframe.src = entryPointUrl;
-    }, 100);
+    }, 300);
     
     return () => {
       iframe.removeEventListener('load', handleIframeLoad);
     };
   }, [entryPointUrl]);
-  
-  // 리소스 정리
-  useEffect(() => {
-    return () => {
-      console.log('Cleaning up SCORM resources');
-      cleanupScormResources(extractedFiles);
-    };
-  }, [extractedFiles]);
 
   return (
     <iframe 

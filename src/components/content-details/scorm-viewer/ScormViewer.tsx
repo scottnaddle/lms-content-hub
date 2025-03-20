@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import ScormFrame from './ScormFrame';
 import ScormProgress from './ScormProgress';
 import ScormError from './ScormError';
 import { useScormLoader } from './useScormLoader';
+import { cleanupScormResources } from '@/utils/scorm';
 
 interface ScormViewerProps {
   fileUrl?: string;
@@ -26,15 +27,26 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     extractedFiles
   } = useScormLoader(fileUrl);
   
-  console.log('ScormViewer 상태:', { 
+  // Debug logging
+  console.log('ScormViewer state:', { 
     error, 
     isLoading, 
-    entryPointUrl: entryPointUrl ? '[URL 존재]' : 'null',
+    entryPointUrl: entryPointUrl ? '[URL exists]' : 'null',
     stage,
     downloadProgress,
     extractionProgress,
     filesCount: extractedFiles.size
   });
+  
+  // Cleanup resources on unmount
+  useEffect(() => {
+    return () => {
+      if (extractedFiles.size > 0) {
+        console.log('Cleaning up SCORM resources');
+        cleanupScormResources(extractedFiles);
+      }
+    };
+  }, [extractedFiles]);
   
   return (
     <div className="w-full flex flex-col space-y-4">

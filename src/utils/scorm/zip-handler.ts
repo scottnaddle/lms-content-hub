@@ -37,18 +37,6 @@ export const downloadAndLoadZip = async (
     
     console.log('Download started, content length:', total);
     
-    // If we can't determine size or no progress callback is provided, fall back to regular download
-    if (!total || !onProgress) {
-      const zipData = await response.arrayBuffer();
-      console.log('SCORM package downloaded, size:', zipData.byteLength);
-      
-      // JSZip을 사용하여 ZIP 파일 추출
-      const zip = new JSZip();
-      const loadedZip = await zip.loadAsync(zipData);
-      
-      return { zip: loadedZip, zipData };
-    }
-    
     // Setup streaming download with progress tracking
     const reader = response.body?.getReader();
     if (!reader) {
@@ -59,7 +47,7 @@ export const downloadAndLoadZip = async (
     const chunks: Uint8Array[] = [];
     
     // Report initial progress
-    onProgress(0);
+    if (onProgress) onProgress(0);
     
     // Process the stream chunks
     while(true) {
@@ -74,8 +62,14 @@ export const downloadAndLoadZip = async (
       receivedLength += value.length;
       
       // Calculate and report progress (0-100)
-      const progress = Math.min(Math.round((receivedLength / total) * 100), 100);
-      onProgress(progress);
+      if (onProgress && total > 0) {
+        const progress = Math.min(Math.round((receivedLength / total) * 100), 100);
+        onProgress(progress);
+      } else if (onProgress) {
+        // If we can't determine total size, just use a simulated progress
+        const simulatedProgress = Math.min(Math.round((receivedLength / 1000000) * 100), 99);
+        onProgress(simulatedProgress);
+      }
     }
     
     // Concatenate chunks into a single Uint8Array
@@ -88,7 +82,7 @@ export const downloadAndLoadZip = async (
     
     // Convert to ArrayBuffer and load with JSZip
     const zipData = allChunks.buffer;
-    console.log('SCORM package downloaded with progress tracking, size:', zipData.byteLength);
+    console.log('SCORM package downloaded, size:', zipData.byteLength);
     
     if (zipData.byteLength === 0) {
       throw new Error('Downloaded file is empty (0 bytes)');
@@ -103,7 +97,7 @@ export const downloadAndLoadZip = async (
       }
       
       // Report completion
-      onProgress(100);
+      if (onProgress) onProgress(100);
       
       return { zip: loadedZip, zipData };
     } catch (error: any) {
@@ -124,31 +118,35 @@ export const extractAllFiles = async (
   onProgress?: (progress: number) => void
 ): Promise<Map<string, string>> => {
   const extractedFiles = new Map<string, string>();
-  const fileCount = Object.keys(loadedZip.files).filter(filename => !loadedZip.files[filename].dir).length;
+  const fileEntries = Object.entries(loadedZip.files).filter(([_, file]) => !file.dir);
+  const fileCount = fileEntries.length;
   let processedCount = 0;
   
   // Report initial extraction progress
   if (onProgress) onProgress(0);
   
-  const extractPromises = Object.keys(loadedZip.files).map(async (filename) => {
-    const file = loadedZip.files[filename];
+  // Process files in parallel with limited concurrency
+  const batchSize = 10;
+  for (let i = 0; i < fileEntries.length; i += batchSize) {
+    const batch = fileEntries.slice(i, i + batchSize);
     
-    // 디렉토리는 건너뛰기
-    if (file.dir) return;
-    
-    try {
-      // 파일 내용을 Blob으로 추출
-      const content = await file.async('blob');
-      const contentType = getContentType(filename);
-      const blob = new Blob([content], { type: contentType });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // 파일 경로와 Blob URL을 맵에 저장
-      extractedFiles.set(filename, blobUrl);
-      
-      // 디버깅을 위해 첫 10개 파일 경로 출력
-      if (extractedFiles.size <= 10) {
-        console.log(`Extracted file ${extractedFiles.size}: ${filename} -> ${blobUrl}`);
+    await Promise.all(batch.map(async ([filename, file]) => {
+      try {
+        // 파일 내용을 Blob으로 추출
+        const content = await file.async('blob');
+        const contentType = getContentType(filename);
+        const blob = new Blob([content], { type: contentType });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // 파일 경로와 Blob URL을 맵에 저장
+        extractedFiles.set(filename, blobUrl);
+        
+        // 디버깅을 위해 첫 10개 파일 경로 출력
+        if (extractedFiles.size <= 10) {
+          console.log(`Extracted file ${extractedFiles.size}: ${filename}`);
+        }
+      } catch (err) {
+        console.error(`Failed to extract file: ${filename}`, err);
       }
       
       // Update extraction progress
@@ -157,13 +155,8 @@ export const extractAllFiles = async (
         const progress = Math.min(Math.round((processedCount / fileCount) * 100), 100);
         onProgress(progress);
       }
-    } catch (err) {
-      console.error(`Failed to extract file: ${filename}`, err);
-    }
-  });
-  
-  // 모든 파일 추출이 완료될 때까지 대기
-  await Promise.all(extractPromises);
+    }));
+  }
   
   console.log('Extraction complete, files:', extractedFiles.size);
   return extractedFiles;

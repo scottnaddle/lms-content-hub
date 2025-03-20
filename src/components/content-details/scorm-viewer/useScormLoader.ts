@@ -20,6 +20,7 @@ export const useScormLoader = (fileUrl?: string) => {
     
     const loadScormPackage = async () => {
       if (!fileUrl) {
+        console.error('No file URL provided for SCORM package');
         setError("SCORM 파일을 찾을 수 없습니다.");
         setStage('error');
         setIsLoading(false);
@@ -33,18 +34,20 @@ export const useScormLoader = (fileUrl?: string) => {
         setDownloadProgress(0);
         setExtractionProgress(0);
         
-        // 스토리지 URL 가져오기 - 올바른 경로 확인
-        console.log('Original file path:', fileUrl);
+        // Parse file path from URL
+        console.log('Original SCORM file URL:', fileUrl);
         
-        // Extract the actual file path from the full URL if it's a full URL
+        // Extract the actual file path from the full URL
         let actualPath = fileUrl;
+        // Handle both 'content_files/' and 'storage/v1/object/public/content_files/' formats
         if (fileUrl.includes('content_files/')) {
-          actualPath = fileUrl.split('content_files/')[1];
+          const pathParts = fileUrl.split('content_files/');
+          actualPath = pathParts[pathParts.length - 1];
         }
         
         console.log('Parsed file path for signed URL:', actualPath);
         
-        // 서명된 URL 생성 - 유효 시간을 10분으로 늘림
+        // Generate signed URL with extended validity (10 minutes)
         const { data: signedUrlData, error: signedUrlError } = await supabase
           .storage
           .from('content_files')
@@ -52,12 +55,12 @@ export const useScormLoader = (fileUrl?: string) => {
 
         if (signedUrlError || !signedUrlData?.signedUrl) {
           console.error('Failed to get signed URL:', signedUrlError);
-          throw new Error(signedUrlError?.message || 'Failed to get signed URL');
+          throw new Error(signedUrlError?.message || 'Signed URL generation failed');
         }
 
         console.log('Successfully got signed URL:', signedUrlData.signedUrl);
         
-        // SCORM 패키지 추출 with progress tracking
+        // Extract SCORM package with progress tracking
         const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(
           signedUrlData.signedUrl,
           (progress) => {
@@ -89,6 +92,7 @@ export const useScormLoader = (fileUrl?: string) => {
         }
         
         if (!entryPoint) {
+          console.error('No entry point found in SCORM package');
           setError("SCORM 패키지에서 시작 파일을 찾을 수 없습니다.");
           setStage('error');
           setIsLoading(false);
@@ -97,11 +101,12 @@ export const useScormLoader = (fileUrl?: string) => {
         
         console.log('SCORM entry point found:', entryPoint);
         
-        // 추출된 파일 및 진입점 설정
+        // Set extracted files and entry point
         setExtractedFiles(files);
         const entryUrl = files.get(entryPoint);
         
         if (!entryUrl) {
+          console.error('Entry point URL not found in extracted files');
           setError("SCORM 시작 파일을 로드할 수 없습니다.");
           setStage('error');
           setIsLoading(false);
@@ -126,9 +131,6 @@ export const useScormLoader = (fileUrl?: string) => {
     
     return () => {
       isMounted = false;
-      if (extractedFiles.size > 0) {
-        cleanupScormResources(extractedFiles);
-      }
     };
   }, [fileUrl]);
 
@@ -141,12 +143,4 @@ export const useScormLoader = (fileUrl?: string) => {
     extractionProgress,
     stage
   };
-};
-
-// SCORM 리소스 정리 함수
-const cleanupScormResources = (extractedFiles: Map<string, string>) => {
-  extractedFiles.forEach(url => {
-    URL.revokeObjectURL(url);
-  });
-  extractedFiles.clear();
 };
