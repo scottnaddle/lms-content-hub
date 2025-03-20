@@ -36,7 +36,7 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
           const thumbnailUrl = await getFileUrl(data.thumbnail_path);
           
           // Fix: Cast content_type to the correct enum type
-          const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document';
+          const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
           
           setContent({
             ...data,

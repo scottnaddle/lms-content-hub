@@ -96,7 +96,7 @@ export const useContentUpload = () => {
       if (fileType === 'scorm') {
         // Try different MIME type options for SCORM/ZIP files
         uploadOptions = {
-          contentType: 'application/octet-stream',
+          contentType: 'application/zip',
           upsert: false
         };
         
