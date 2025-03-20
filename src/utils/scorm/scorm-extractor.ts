@@ -27,6 +27,7 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
       headers: {
         'Cache-Control': 'no-cache',
       },
+      credentials: 'include' // 인증 정보 포함
     });
     
     if (!response.ok) {
@@ -50,10 +51,14 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
     // SCORM 진입점 파일 (일반적으로 index.html, index_lms.html, 또는 imsmanifest.xml에 지정된 파일)
     let entryPoint: string | null = null;
     
-    // 가능한 공통 진입점 파일 경로 목록
+    // 가능한 공통 진입점 파일 경로 목록 (우선순위 순)
     const commonEntryPaths = [
       'index.html',
       'story.html',
+      'story_html5.html',
+      'index_lms.html',
+      'launch.html',
+      'player.html',
       'scormdriver/indexAPI.html',
       'scormcontent/index.html',
       'shared/launchpage.html',
@@ -61,6 +66,33 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
       'content/index.html',
       'courseimages/index.html',
     ];
+    
+    // 디렉토리 존재 여부 확인 함수
+    const directoryExists = (path: string): boolean => {
+      return !!loadedZip.files[path] || Object.keys(loadedZip.files).some(name => name.startsWith(path + '/'));
+    };
+    
+    // 특정 패턴의 디렉토리 안에서 진입점 찾기
+    const findEntryInDirectory = (dirPattern: string): string | null => {
+      // 해당 패턴에 맞는 디렉토리 찾기
+      const matchingDirs = Object.keys(loadedZip.files)
+        .filter(name => loadedZip.files[name].dir && name.includes(dirPattern))
+        .sort((a, b) => a.length - b.length); // 짧은 경로 우선
+      
+      if (matchingDirs.length === 0) return null;
+      
+      // 각 디렉토리에서 진입점 확인
+      for (const dir of matchingDirs) {
+        for (const entry of commonEntryPaths) {
+          const potentialPath = dir + entry;
+          if (loadedZip.files[potentialPath] && !loadedZip.files[potentialPath].dir) {
+            return potentialPath;
+          }
+        }
+      }
+      
+      return null;
+    };
     
     // 모든 파일 목록을 먼저 확인하여 manifest 및 가능한 진입점 찾기
     Object.keys(loadedZip.files).forEach(filename => {
@@ -77,13 +109,65 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
       if (!entryPoint) {
         // 공통 진입점 패턴 확인
         for (const commonPath of commonEntryPaths) {
-          if (filename.toLowerCase().endsWith(commonPath.toLowerCase())) {
+          // 정확히 일치하는 경우
+          if (filename.toLowerCase() === commonPath.toLowerCase()) {
             entryPoint = filename;
+            console.log('Found exact entry point match:', filename);
+            break;
+          }
+          // 끝부분이 일치하는 경우
+          else if (filename.toLowerCase().endsWith('/' + commonPath.toLowerCase())) {
+            entryPoint = filename;
+            console.log('Found entry point match at end of path:', filename);
             break;
           }
         }
       }
     });
+    
+    // 특정 타입의 SCORM 패키지 감지 및 진입점 찾기 (Articulate Storyline, Adobe Captivate 등)
+    if (!entryPoint) {
+      // Articulate Storyline 패턴 확인
+      if (directoryExists('story_content') || directoryExists('mobile')) {
+        const storylineEntry = Object.keys(loadedZip.files).find(name => 
+          name === 'story.html' || name === 'index.html' || name === 'story_html5.html'
+        );
+        if (storylineEntry) {
+          entryPoint = storylineEntry;
+          console.log('Detected Articulate Storyline package, entry point:', entryPoint);
+        }
+      }
+      
+      // Adobe Captivate 패턴 확인
+      if (!entryPoint && (directoryExists('assets') || directoryExists('lib'))) {
+        const captivateEntry = Object.keys(loadedZip.files).find(name => 
+          name === 'index.html' || name.endsWith('/index.html')
+        );
+        if (captivateEntry) {
+          entryPoint = captivateEntry;
+          console.log('Detected Adobe Captivate package, entry point:', entryPoint);
+        }
+      }
+      
+      // iSpring 패턴 확인
+      if (!entryPoint && directoryExists('data')) {
+        const iSpringEntry = Object.keys(loadedZip.files).find(name => 
+          name === 'index.html' || name === 'player.html'
+        );
+        if (iSpringEntry) {
+          entryPoint = iSpringEntry;
+          console.log('Detected iSpring package, entry point:', entryPoint);
+        }
+      }
+      
+      // SCORM Cloud 패턴 확인
+      if (!entryPoint) {
+        entryPoint = findEntryInDirectory('scorm');
+        if (entryPoint) {
+          console.log('Detected SCORM Cloud package, entry point:', entryPoint);
+        }
+      }
+    }
     
     // 모든 파일 추출 및 Blob URL 생성
     const extractPromises = Object.keys(loadedZip.files).map(async (filename) => {
@@ -101,6 +185,11 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
         
         // 파일 경로와 Blob URL을 맵에 저장
         extractedFiles.set(filename, blobUrl);
+        
+        // 디버깅을 위해 첫 10개 파일 경로 출력
+        if (extractedFiles.size <= 10) {
+          console.log(`Extracted file ${extractedFiles.size}: ${filename} -> ${blobUrl}`);
+        }
       } catch (err) {
         console.error(`Failed to extract file: ${filename}`, err);
       }
@@ -137,6 +226,8 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
           if (extractedFiles.has(manifestEntryPoint)) {
             entryPoint = manifestEntryPoint;
             console.log('Entry point found in manifest:', entryPoint);
+          } else {
+            console.log('Entry point in manifest not found in extracted files:', manifestEntryPoint);
           }
         }
       } catch (err) {
@@ -150,15 +241,39 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
         filename.toLowerCase().endsWith('.html') || filename.toLowerCase().endsWith('.htm')
       );
       
-      // HTML 파일이 하나라도 있다면 첫 번째 것을 사용
+      console.log('No entry point found, looking at HTML files:', htmlFiles.length);
+      
+      // HTML 파일이 하나라도 있다면 선택
       if (htmlFiles.length > 0) {
+        // 경로 깊이에 따른 정렬 (짧은 경로 우선)
+        htmlFiles.sort((a, b) => {
+          const depthA = a.split('/').length;
+          const depthB = b.split('/').length;
+          return depthA - depthB;
+        });
+        
         // 최상위 디렉토리의 index.html 파일을 찾기
         const rootIndexFile = htmlFiles.find(file => 
           file === 'index.html' || file.match(/^[^\/]+\/index\.html$/)
         );
         
-        entryPoint = rootIndexFile || htmlFiles[0];
+        // index.html, launch.html 또는 기타 일반적인 진입점 이름 선호
+        const preferredNameFile = htmlFiles.find(file => {
+          const fileName = file.split('/').pop()?.toLowerCase() || '';
+          return fileName === 'index.html' || fileName === 'story.html' || 
+                 fileName === 'launch.html' || fileName === 'player.html' || 
+                 fileName === 'start.html' || fileName === 'default.html';
+        });
+        
+        entryPoint = rootIndexFile || preferredNameFile || htmlFiles[0];
+        console.log('Selected HTML file as entry point:', entryPoint);
       }
+    }
+    
+    // 디버그: 선택된 진입점의 URL 확인
+    if (entryPoint) {
+      const entryUrl = extractedFiles.get(entryPoint);
+      console.log('Entry point URL:', entryUrl);
     }
     
     console.log('SCORM entry point determined:', entryPoint);

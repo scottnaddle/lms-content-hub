@@ -160,30 +160,64 @@ export const injectScormApi = (iframe: HTMLIFrameElement): void => {
     
     // API 객체를 iframe의 window 객체에 추가
     try {
-      Object.defineProperty(iframeWindow, 'API', {
-        value: API,
-        writable: false,
-        enumerable: true,
-        configurable: true
-      });
-      console.log('SCORM 1.2 API injected into iframe');
-    } catch (err) {
-      console.error('Failed to inject SCORM 1.2 API:', err);
+      // API 객체를 다양한 방법으로 iframe의 window 객체에 추가
+      // 1. defineProperty로 시도
+      try {
+        Object.defineProperty(iframeWindow, 'API', {
+          value: API,
+          writable: false,
+          enumerable: true,
+          configurable: true
+        });
+        console.log('SCORM 1.2 API injected into iframe via defineProperty');
+      } catch (err) {
+        console.warn('Failed to inject SCORM 1.2 API via defineProperty:', err);
+        // 2. 직접 할당 시도
+        (iframeWindow as any).API = API;
+        console.log('SCORM 1.2 API injected into iframe via direct assignment');
+      }
+      
+      // SCORM 2004 API 추가
+      try {
+        Object.defineProperty(iframeWindow, 'API_1484_11', {
+          value: API_1484_11,
+          writable: false,
+          enumerable: true,
+          configurable: true
+        });
+        console.log('SCORM 2004 API injected via defineProperty');
+      } catch (err) {
+        console.warn('Failed to inject SCORM 2004 API via defineProperty:', err);
+        // 직접 할당 시도
+        (iframeWindow as any).API_1484_11 = API_1484_11;
+        console.log('SCORM 2004 API injected via direct assignment');
+      }
+      
+      // 부모 API 객체 경로 주입 (일부 SCORM 콘텐츠에서 필요)
+      try {
+        (iframeWindow as any).parent.API = API;
+        (iframeWindow as any).parent.API_1484_11 = API_1484_11;
+        console.log('SCORM APIs also injected into iframe parent path');
+      } catch (err) {
+        console.warn('Failed to inject SCORM APIs into parent path:', err);
+      }
+      
+      // AICC API 호환 (일부 오래된 콘텐츠 지원)
+      try {
+        (iframeWindow as any).AICC_API = API;
+        console.log('AICC API injected for backward compatibility');
+      } catch (err) {
+        console.warn('Failed to inject AICC API:', err);
+      }
+      
+      console.log('SCORM API has been injected into iframe');
+      
+      // iframe 내용이 정확히 로드되었는지 확인
+      console.log('iframe content document:', iframe.contentDocument ? 'available' : 'not available');
+      console.log('iframe readyState:', iframe.contentDocument?.readyState);
+    } catch (error) {
+      console.error('Failed to inject any SCORM API:', error);
     }
-    
-    try {
-      Object.defineProperty(iframeWindow, 'API_1484_11', {
-        value: API_1484_11,
-        writable: false,
-        enumerable: true,
-        configurable: true
-      });
-      console.log('SCORM 2004 API injected into iframe');
-    } catch (err) {
-      console.error('Failed to inject SCORM 2004 API:', err);
-    }
-    
-    console.log('SCORM API has been injected into iframe');
   } catch (error) {
     console.error('Failed to inject SCORM API:', error);
     throw error;

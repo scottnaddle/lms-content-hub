@@ -68,12 +68,14 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
         // 추출된 파일 및 진입점 설정
         setExtractedFiles(files);
         const entryUrl = files.get(entryPoint);
-        setEntryPointUrl(entryUrl || null);
         
         if (!entryUrl) {
           setError("SCORM 시작 파일을 로드할 수 없습니다.");
           setIsLoading(false);
+          return;
         }
+        
+        setEntryPointUrl(entryUrl);
       } catch (err: any) {
         if (isMounted) {
           console.error("SCORM 로드 오류:", err);
@@ -88,7 +90,9 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     return () => {
       isMounted = false;
       // 리소스 정리
-      cleanupScormResources(extractedFiles);
+      if (extractedFiles.size > 0) {
+        cleanupScormResources(extractedFiles);
+      }
     };
   }, [fileUrl]);
   
@@ -129,7 +133,7 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
       console.log('Cleaning up SCORM resources');
       cleanupScormResources(extractedFiles);
     };
-  }, []);
+  }, [extractedFiles]);
   
   return (
     <div className="w-full flex flex-col space-y-4">
@@ -156,7 +160,7 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
       )}
       
       <div 
-        className={`w-full h-[70vh] border rounded-lg overflow-hidden ${(isLoading || error) ? 'hidden' : ''}`}
+        className={`w-full h-[70vh] border rounded-lg ${(isLoading || error) ? 'hidden' : 'block'}`}
         data-testid="scorm-container"
       >
         <iframe 
@@ -172,4 +176,3 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
 };
 
 export default ScormViewer;
-
