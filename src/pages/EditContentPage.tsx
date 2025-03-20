@@ -44,7 +44,15 @@ const EditContentPage: React.FC = () => {
         if (error) throw error;
         
         if (data) {
-          setContent(data);
+          // Cast content_type to the expected union type
+          const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document';
+          
+          // Set the content with the properly typed content_type
+          setContent({
+            ...data,
+            content_type: contentType
+          });
+          
           setTitle(data.title);
           setDescription(data.description || '');
           setTags(data.tags ? data.tags.join(', ') : '');
