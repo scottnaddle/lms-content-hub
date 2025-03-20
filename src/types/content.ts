@@ -11,6 +11,8 @@ export interface ContentDetails {
   tags: string[] | null;
   view_count: number | null;
   download_count: number | null;
+  duration?: number | null;
+  page_count?: number | null;
   fileUrl?: string;
   thumbnailUrl?: string;
 }
