@@ -57,4 +57,16 @@ export const contentDetailsTranslations: TranslationsCollection = {
     uz: 'Orqaga qaytish',
     ko: '뒤로 가기',
   },
+  audioNotSupported: {
+    en: 'Your browser does not support audio playback.',
+    ru: 'Ваш браузер не поддерживает воспроизведение аудио.',
+    uz: 'Brauzeringiz audio ijroni qo\'llab-quvvatlamaydi.',
+    ko: '브라우저가 오디오 재생을 지원하지 않습니다.',
+  },
+  audioLoadError: {
+    en: 'Cannot load audio',
+    ru: 'Невозможно загрузить аудио',
+    uz: 'Audioni yuklab bo\'lmadi',
+    ko: '오디오를 불러올 수 없습니다',
+  },
 };

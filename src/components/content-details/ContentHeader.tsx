@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Chip } from '@/components/ui/chip';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContentHeaderProps {
   contentType: string;
@@ -11,6 +12,7 @@ interface ContentHeaderProps {
 
 const ContentHeader: React.FC<ContentHeaderProps> = ({ contentType }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   return (
     <div className="flex items-center gap-2">
@@ -19,7 +21,7 @@ const ContentHeader: React.FC<ContentHeaderProps> = ({ contentType }) => {
         size="icon"
         onClick={() => navigate(-1)}
         className="mr-2"
-        aria-label="뒤로 가기"
+        aria-label={t('goBack')}
       >
         <ArrowLeft className="h-5 w-5" />
       </Button>

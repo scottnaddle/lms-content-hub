@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AudioPlayerProps {
   fileUrl: string | undefined;
@@ -7,6 +8,8 @@ interface AudioPlayerProps {
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ fileUrl, title }) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="p-8 rounded-lg bg-accent flex items-center justify-center">
       {fileUrl ? (
@@ -17,11 +20,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ fileUrl, title }) => {
           <p className="text-lg font-medium text-center mb-4">{title}</p>
           <audio controls className="w-full">
             <source src={fileUrl} />
-            브라우저가 오디오 재생을 지원하지 않습니다.
+            {t('audioNotSupported')}
           </audio>
         </div>
       ) : (
-        <p className="text-muted-foreground">오디오를 불러올 수 없습니다</p>
+        <p className="text-muted-foreground">{t('audioLoadError')}</p>
       )}
     </div>
   );
