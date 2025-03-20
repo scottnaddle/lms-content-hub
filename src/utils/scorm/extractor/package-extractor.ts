@@ -2,15 +2,8 @@
 /**
  * SCORM 패키지 추출 핵심 기능
  */
-import { 
-  commonEntryPaths, 
-  extractEntryFromManifest, 
-  findEntryInDirectory, 
-  detectScormPackageType, 
-  selectBestHtmlFile 
-} from '../entry-point';
-import { downloadAndLoadZip, extractAllFiles } from '../zip-handler';
 import { findScormEntryPoint } from './entry-point-finder';
+import { downloadAndLoadZip, extractAllFiles } from '../zip-handler';
 
 /**
  * SCORM 패키지(ZIP)를 다운로드하고 추출하는 함수
@@ -39,8 +32,12 @@ export const extractScormPackage = async (
     // ZIP 파일 다운로드 및 로드 (with progress tracking)
     const { zip: loadedZip } = await downloadAndLoadZip(fileUrl, onDownloadProgress);
     
+    // Log zip file contents
+    console.log('ZIP file loaded, file count:', Object.keys(loadedZip.files).length);
+    
     // SCORM 콘텐츠의 모든 파일을 추출 (with progress tracking)
     const extractedFiles = await extractAllFiles(loadedZip, onExtractionProgress);
+    console.log('All files extracted, count:', extractedFiles.size);
     
     // 진입점 파일 찾기
     const entryPoint = await findScormEntryPoint(loadedZip, extractedFiles);

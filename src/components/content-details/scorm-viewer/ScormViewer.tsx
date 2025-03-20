@@ -71,7 +71,7 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
       )}
       
       <div 
-        className={`w-full h-[70vh] border rounded-lg overflow-hidden transition-opacity duration-300 ${(isLoading || error) ? 'hidden' : 'block animate-fade-in'}`}
+        className={`w-full h-[70vh] bg-gray-50 border rounded-lg overflow-hidden transition-opacity duration-300 ${(isLoading || error) ? 'hidden' : 'block animate-fade-in'}`}
         data-testid="scorm-container"
       >
         {entryPointUrl && !isLoading && !error && (

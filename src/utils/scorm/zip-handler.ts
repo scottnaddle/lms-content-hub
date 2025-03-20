@@ -19,11 +19,18 @@ export const downloadAndLoadZip = async (
   console.log('Attempting to download SCORM package from URL:', fileUrl);
   
   try {
-    const response = await fetch(fileUrl, {
+    // Cache-busting 파라미터 추가
+    const cacheBustedUrl = fileUrl.includes('?') 
+      ? `${fileUrl}&cacheBust=${Date.now()}`
+      : `${fileUrl}?cacheBust=${Date.now()}`;
+    
+    const response = await fetch(cacheBustedUrl, {
       method: 'GET',
       cache: 'no-cache',
       headers: {
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       }
     });
     
@@ -141,8 +148,8 @@ export const extractAllFiles = async (
         // 파일 경로와 Blob URL을 맵에 저장
         extractedFiles.set(filename, blobUrl);
         
-        // 디버깅을 위해 첫 10개 파일 경로 출력
-        if (extractedFiles.size <= 10) {
+        // 디버깅을 위해 첫 20개 파일 경로 출력
+        if (extractedFiles.size <= 20) {
           console.log(`Extracted file ${extractedFiles.size}: ${filename}`);
         }
       } catch (err) {
@@ -158,6 +165,12 @@ export const extractAllFiles = async (
     }));
   }
   
-  console.log('Extraction complete, files:', extractedFiles.size);
+  console.log('Extraction complete, total files:', extractedFiles.size);
+  
+  // Log important file types (html, js)
+  const htmlFiles = Array.from(extractedFiles.keys()).filter(f => f.endsWith('.html') || f.endsWith('.htm'));
+  console.log('HTML files count:', htmlFiles.length);
+  htmlFiles.slice(0, 10).forEach(f => console.log('HTML file:', f));
+  
   return extractedFiles;
 };

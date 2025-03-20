@@ -13,6 +13,11 @@ import { injectAPIIntoAncestors, injectAPIIntoSubframes, validateAPIInjection } 
  */
 export const injectScormApi = (iframe: HTMLIFrameElement): boolean => {
   try {
+    if (!iframe) {
+      console.error('Iframe element is null or undefined');
+      return false;
+    }
+
     const iframeWindow = iframe.contentWindow;
     if (!iframeWindow) {
       console.error('Cannot access iframe content window');
@@ -35,39 +40,53 @@ export const injectScormApi = (iframe: HTMLIFrameElement): boolean => {
       const iframeDoc = iframe.contentDocument || iframeWindow.document;
       if (!iframeDoc) {
         console.warn('Cannot access iframe document, injection may fail');
+      } else {
+        // Check iframe readiness
+        const readyState = iframeDoc.readyState;
+        console.log('Iframe readyState:', readyState);
+
+        // If document is not ready yet, wait for it
+        if (readyState !== 'complete' && readyState !== 'interactive') {
+          console.log('Document not ready, setting up load event listener for API injection');
+          
+          // We could also wait for the document to be ready,
+          // but we'll try injecting anyway as some SCORM packages expect early API availability
+        }
       }
       
-      // Check iframe readiness
-      const readyState = iframeDoc?.readyState;
-      console.log('Iframe readyState:', readyState);
-      
-      // Based on the reference implementation, inject API in multiple locations:
+      // Multiple injection approaches for maximum compatibility
       
       // 1. Direct injection to window object
       (iframeWindow as any).API = API;
       (iframeWindow as any).API_1484_11 = API_1484_11;
+      console.log('API directly injected to iframe window');
       
-      // 2. Inject to parent window (this is critical for SCORM)
+      // 2. Inject to parent, top, and opener references
       try {
-        // SCORM 1.2 API
+        // SCORM 1.2 API - inject to parent
         (iframeWindow as any).parent.API = API;
+        (iframeWindow as any).top.API = API;
+        if ((iframeWindow as any).opener) (iframeWindow as any).opener.API = API;
         
-        // SCORM 2004 API
+        // SCORM 2004 API - inject to parent
         (iframeWindow as any).parent.API_1484_11 = API_1484_11;
+        (iframeWindow as any).top.API_1484_11 = API_1484_11;
+        if ((iframeWindow as any).opener) (iframeWindow as any).opener.API_1484_11 = API_1484_11;
         
-        console.log('API injected into parent frame');
+        console.log('API injected into parent/top/opener frames');
       } catch (e) {
-        console.warn('Failed to inject API into parent frame:', e);
+        console.warn('Failed to inject API into some parent/top frames:', e);
       }
       
-      // 3. Inject to other frames that might need it
-      injectAPIIntoSubframes(iframeWindow, API);
+      // 3. Inject to other frames and ancestors
+      injectAPIIntoSubframes(iframeWindow, API, API_1484_11);
       injectAPIIntoAncestors(iframeWindow, API, API_1484_11);
       
-      // 4. Add to global window for maximum compatibility
+      // 4. Add to global window as fallback
       try {
         (window as any).API = API;
         (window as any).API_1484_11 = API_1484_11;
+        console.log('API injected into global window as fallback');
       } catch (e) {
         console.warn('Failed to add API to global window:', e);
       }
@@ -84,7 +103,9 @@ export const injectScormApi = (iframe: HTMLIFrameElement): boolean => {
       console.log('SCORM API injection complete in multiple contexts');
       
       // Validate API injection
-      return validateAPIInjection(iframe);
+      const isValid = validateAPIInjection(iframe);
+      console.log('API validation result:', isValid ? 'SUCCESS' : 'FAILED');
+      return isValid;
     } catch (error) {
       console.error('Failed during SCORM API injection:', error);
       return false;

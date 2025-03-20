@@ -37,6 +37,7 @@ export const useScormLoader = (fileUrl?: string) => {
       if (error) throw error;
       if (!data?.signedUrl) throw new Error('Failed to get signed URL');
       
+      console.log('Obtained signed URL with 30 min expiration');
       return data.signedUrl;
     } catch (err: any) {
       console.error('Signed URL error:', err);
@@ -95,8 +96,10 @@ export const useScormLoader = (fileUrl?: string) => {
         return;
       }
       
-      // Set extracted files and entry point
+      // Set extracted files
       setExtractedFiles(files);
+      
+      // Get entry URL and validate
       const entryUrl = files.get(entryPoint);
       
       if (!entryUrl) {
@@ -107,9 +110,17 @@ export const useScormLoader = (fileUrl?: string) => {
       }
       
       console.log('SCORM entry point found:', entryPoint);
+      console.log('Entry URL:', entryUrl);
+      
       setEntryPointUrl(entryUrl);
-      setStage('complete');
-      setIsLoading(false);
+      setStage('loading');
+      
+      // Brief delay before marking as complete to allow the iframe to initialize
+      setTimeout(() => {
+        setStage('complete');
+        setIsLoading(false);
+      }, 500);
+      
     } catch (err: any) {
       console.error("SCORM 로드 오류:", err);
       setError(`SCORM 패키지를 로드하는 데 실패했습니다: ${err.message || "알 수 없는 오류"}`);
