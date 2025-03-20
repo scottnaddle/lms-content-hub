@@ -33,30 +33,23 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
       try {
         // iframe이 로드된 후 SCORM API 주입
         console.log('Iframe loaded, injecting SCORM API');
-        injectScormApi(iframe);
-        apiInjected = true;
+        apiInjected = injectScormApi(iframe);
         setIsFrameLoading(false);
         
         // SCORM API가 제대로 주입되었는지 확인
         setTimeout(() => {
-          try {
-            const iframeWindow = iframe.contentWindow;
-            if (iframeWindow && (iframeWindow as any).API) {
-              console.log('SCORM API validation successful');
-              toast({
-                title: "SCORM 콘텐츠 로드 완료",
-                description: "SCORM 패키지가 성공적으로 로드되었습니다.",
-              });
-            } else {
-              console.warn('SCORM API not found after injection');
-              if (injectionAttempts < 3) {
-                console.log(`Retrying API injection (attempt ${injectionAttempts + 1})`);
-                setInjectionAttempts(prev => prev + 1);
-                injectScormApi(iframe);
-              }
+          if (apiInjected) {
+            console.log('SCORM API validation successful');
+            toast({
+              title: "SCORM 콘텐츠 로드 완료",
+              description: "SCORM 패키지가 성공적으로 로드되었습니다.",
+            });
+          } else {
+            console.warn('SCORM API not found after injection');
+            if (injectionAttempts < 3) {
+              console.log(`Retrying API injection (attempt ${injectionAttempts + 1})`);
+              setInjectionAttempts(prev => prev + 1);
             }
-          } catch (err) {
-            console.error('Error validating SCORM API:', err);
           }
         }, 500);
       } catch (err) {
