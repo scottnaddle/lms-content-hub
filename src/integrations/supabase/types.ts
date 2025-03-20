@@ -16,11 +16,8 @@ export type Database = {
           created_by: string | null
           description: string | null
           download_count: number | null
-          duration: number | null
           file_path: string | null
           id: string
-          metadata: Json | null
-          page_count: number | null
           tags: string[] | null
           thumbnail_path: string | null
           title: string
@@ -33,11 +30,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           download_count?: number | null
-          duration?: number | null
           file_path?: string | null
           id?: string
-          metadata?: Json | null
-          page_count?: number | null
           tags?: string[] | null
           thumbnail_path?: string | null
           title: string
@@ -50,11 +44,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           download_count?: number | null
-          duration?: number | null
           file_path?: string | null
           id?: string
-          metadata?: Json | null
-          page_count?: number | null
           tags?: string[] | null
           thumbnail_path?: string | null
           title?: string
@@ -92,13 +83,6 @@ export type Database = {
           shared_secret?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "lti_configurations_content_id_fkey"
-            columns: ["content_id"]
-            isOneToOne: false
-            referencedRelation: "content_with_creator"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "lti_configurations_content_id_fkey"
             columns: ["content_id"]
@@ -159,13 +143,6 @@ export type Database = {
             foreignKeyName: "user_views_content_id_fkey"
             columns: ["content_id"]
             isOneToOne: false
-            referencedRelation: "content_with_creator"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_views_content_id_fkey"
-            columns: ["content_id"]
-            isOneToOne: false
             referencedRelation: "contents"
             referencedColumns: ["id"]
           },
@@ -173,29 +150,7 @@ export type Database = {
       }
     }
     Views: {
-      content_with_creator: {
-        Row: {
-          avatar_url: string | null
-          content_type: string | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          download_count: number | null
-          duration: number | null
-          file_path: string | null
-          full_name: string | null
-          id: string | null
-          metadata: Json | null
-          page_count: number | null
-          tags: string[] | null
-          thumbnail_path: string | null
-          title: string | null
-          updated_at: string | null
-          username: string | null
-          view_count: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       increment_download_count: {

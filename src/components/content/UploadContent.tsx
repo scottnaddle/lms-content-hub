@@ -12,14 +12,10 @@ const UploadContent: React.FC = () => {
     title,
     description,
     tags,
-    duration,
-    pageCount,
     setTitle,
     setDescription,
     setFileType,
     setTags,
-    setDuration,
-    setPageCount,
     handleFile,
     handleRemoveFile,
     handleSubmit
@@ -41,15 +37,11 @@ const UploadContent: React.FC = () => {
             description={description}
             fileType={fileType}
             tags={tags}
-            duration={duration}
-            pageCount={pageCount}
             isUploading={isUploading}
             onTitleChange={setTitle}
             onDescriptionChange={setDescription}
             onFileTypeChange={setFileType}
             onTagsChange={setTags}
-            onDurationChange={setDuration}
-            onPageCountChange={setPageCount}
             onSubmit={handleSubmit}
           />
         )}

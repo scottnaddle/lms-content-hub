@@ -12,44 +12,11 @@ export const useContentUpload = () => {
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [tags, setTags] = useState<string>('');
-  const [duration, setDuration] = useState<number | null>(null);
-  const [pageCount, setPageCount] = useState<number | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const extractMetadata = async (file: File) => {
-    if (['video', 'audio'].includes(fileType)) {
-      // 비디오 및 오디오 파일의 재생 시간 추출
-      try {
-        const url = URL.createObjectURL(file);
-        const media = fileType === 'video' ? new Audio() : new Audio();
-        
-        return new Promise<void>((resolve) => {
-          media.onloadedmetadata = () => {
-            setDuration(Math.round(media.duration));
-            URL.revokeObjectURL(url);
-            resolve();
-          };
-          
-          media.src = url;
-        });
-      } catch (error) {
-        console.error('Error extracting media metadata:', error);
-      }
-    } else if (fileType === 'pdf') {
-      // PDF 파일의 페이지 수 추출
-      try {
-        // PDF.js를 사용할 수 있지만, 간단한 구현을 위해 여기서는 생략
-        // 실제 구현에서는 PDF.js를 사용하여 페이지 수를 추출할 수 있습니다
-        setPageCount(null);
-      } catch (error) {
-        console.error('Error extracting PDF metadata:', error);
-      }
-    }
-  };
-
-  const handleFile = async (selectedFile: File) => {
+  const handleFile = (selectedFile: File) => {
     const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
     
     if (fileExtension) {
@@ -65,15 +32,10 @@ export const useContentUpload = () => {
     }
     
     setFile(selectedFile);
-    
-    // 메타데이터 추출
-    await extractMetadata(selectedFile);
   };
 
   const handleRemoveFile = () => {
     setFile(null);
-    setDuration(null);
-    setPageCount(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,8 +77,6 @@ export const useContentUpload = () => {
         .from('content_files')
         .getPublicUrl(filePath);
       
-      const tagArray = tags ? tags.split(',').map(tag => tag.trim()) : [];
-      
       const { data: contentData, error: contentError } = await supabase
         .from('contents')
         .insert({
@@ -125,9 +85,7 @@ export const useContentUpload = () => {
           content_type: fileType,
           file_path: filePath,
           created_by: user.id,
-          tags: tagArray,
-          duration: duration,
-          page_count: pageCount
+          tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
         })
         .select('id')
         .single();
@@ -162,14 +120,10 @@ export const useContentUpload = () => {
     title,
     description,
     tags,
-    duration,
-    pageCount,
     setTitle,
     setDescription,
     setFileType,
     setTags,
-    setDuration,
-    setPageCount,
     handleFile,
     handleRemoveFile,
     handleSubmit

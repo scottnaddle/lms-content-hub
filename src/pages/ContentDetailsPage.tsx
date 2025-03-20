@@ -44,9 +44,9 @@ const ContentDetailsPage: React.FC = () => {
     return (
       <PageLayout>
         <div className="text-center py-12">
-          <h2 className="text-xl font-medium mb-2">{t('contentNotFound')}</h2>
-          <p className="text-muted-foreground mb-6">{t('contentNotFoundDesc')}</p>
-          <Button onClick={() => window.history.back()}>{t('goBack')}</Button>
+          <h2 className="text-xl font-medium mb-2">콘텐츠를 찾을 수 없음</h2>
+          <p className="text-muted-foreground mb-6">요청하신 콘텐츠가 존재하지 않거나 삭제되었습니다.</p>
+          <Button onClick={() => window.history.back()}>뒤로 가기</Button>
         </div>
       </PageLayout>
     );
@@ -69,9 +69,7 @@ const ContentDetailsPage: React.FC = () => {
             <ContentMetadata 
               formattedDate={formattedDate} 
               contentType={content.content_type} 
-              viewCount={content.view_count}
-              duration={content.duration}
-              pageCount={content.page_count}
+              viewCount={content.view_count} 
             />
             
             <ContentActions 

@@ -42,9 +42,7 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
             ...data,
             content_type: contentType,
             fileUrl,
-            thumbnailUrl,
-            duration: data.duration,
-            page_count: data.page_count
+            thumbnailUrl
           });
         }
       } catch (error) {
