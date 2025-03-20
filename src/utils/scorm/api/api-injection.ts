@@ -30,45 +30,67 @@ export const injectScormApi = (iframe: HTMLIFrameElement): boolean => {
     // SCORM 2004 API 생성
     const API_1484_11 = createScorm2004API(scormData);
     
-    // API를 window.API로 직접 할당
     try {
-      // 부모 프레임에 API 배치 (SCORM 1.2 표준에 따라)
-      (iframeWindow as any).parent.API = API;
-      console.log('SCORM 1.2 API injected into parent frame');
+      // First, check if we can access iframe document
+      const iframeDoc = iframe.contentDocument || iframeWindow.document;
+      if (!iframeDoc) {
+        console.warn('Cannot access iframe document, injection may fail');
+      }
       
-      // 직접 window에도 API 배치
+      // Check iframe readiness
+      const readyState = iframeDoc?.readyState;
+      console.log('Iframe readyState:', readyState);
+      
+      // Based on the reference implementation, inject API in multiple locations:
+      
+      // 1. Direct injection to window object
       (iframeWindow as any).API = API;
-      console.log('SCORM 1.2 API also injected directly into window');
-      
-      // SCORM 2004 API 추가
-      (iframeWindow as any).parent.API_1484_11 = API_1484_11;
       (iframeWindow as any).API_1484_11 = API_1484_11;
-      console.log('SCORM 2004 API injected');
       
-      // 하위 프레임에 API 주입
+      // 2. Inject to parent window (this is critical for SCORM)
+      try {
+        // SCORM 1.2 API
+        (iframeWindow as any).parent.API = API;
+        
+        // SCORM 2004 API
+        (iframeWindow as any).parent.API_1484_11 = API_1484_11;
+        
+        console.log('API injected into parent frame');
+      } catch (e) {
+        console.warn('Failed to inject API into parent frame:', e);
+      }
+      
+      // 3. Inject to other frames that might need it
       injectAPIIntoSubframes(iframeWindow, API);
-      
-      // 조상 프레임에 API 주입
       injectAPIIntoAncestors(iframeWindow, API, API_1484_11);
       
-      // AICC 호환성
-      (iframeWindow as any).AICC_API = API;
-      console.log('AICC API injected for backward compatibility');
+      // 4. Add to global window for maximum compatibility
+      try {
+        (window as any).API = API;
+        (window as any).API_1484_11 = API_1484_11;
+      } catch (e) {
+        console.warn('Failed to add API to global window:', e);
+      }
       
-      // iframe 상태 확인
-      console.log('iframe content document:', iframe.contentDocument ? 'available' : 'not available');
-      console.log('iframe readyState:', iframe.contentDocument?.readyState);
+      // 5. AICC compatibility
+      try {
+        (iframeWindow as any).AICC_API = API;
+        (window as any).AICC_API = API;
+      } catch (e) {
+        console.warn('Failed to add AICC API:', e);
+      }
       
-      console.log('SCORM API injection complete');
+      // Log successful injection
+      console.log('SCORM API injection complete in multiple contexts');
       
-      // API 주입 확인
+      // Validate API injection
       return validateAPIInjection(iframe);
     } catch (error) {
-      console.error('Failed to inject SCORM API:', error);
+      console.error('Failed during SCORM API injection:', error);
       return false;
     }
   } catch (error) {
-    console.error('Failed to inject SCORM API:', error);
+    console.error('Critical error in SCORM API injection:', error);
     return false;
   }
 };

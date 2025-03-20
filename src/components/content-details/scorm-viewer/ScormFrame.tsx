@@ -31,13 +31,17 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     // iframe이 로드될 때 SCORM API 주입
     const handleIframeLoad = () => {
       try {
-        // iframe이 로드된 후 SCORM API 주입
         console.log('Iframe loaded, injecting SCORM API');
-        apiInjected = injectScormApi(iframe);
-        setIsFrameLoading(false);
         
-        // SCORM API가 제대로 주입되었는지 확인
+        // Important: Wait a moment before injecting API
+        // This gives the SCORM content time to initialize
         setTimeout(() => {
+          apiInjected = injectScormApi(iframe);
+          setIsFrameLoading(false);
+          
+          console.log('SCORM API injection complete, checking status...');
+          
+          // SCORM API가 제대로 주입되었는지 확인
           if (apiInjected) {
             console.log('SCORM API validation successful');
             toast({
@@ -51,10 +55,8 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
               setInjectionAttempts(prev => prev + 1);
             }
           }
-        }, 500);
-
-        // Force reload if iframe appears empty after loading
-        setTimeout(() => {
+          
+          // Force reload if iframe appears empty after loading
           const iframeDoc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
           if (iframeDoc && (!iframeDoc.body || !iframeDoc.body.innerHTML.trim())) {
             console.warn('Iframe appears to be empty, forcing reload');
@@ -63,30 +65,36 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
               setInjectionAttempts(prev => prev + 1);
             }
           }
-        }, 1000);
+        }, 500);
       } catch (err) {
         console.error('Failed to inject SCORM API:', err);
+        setIsFrameLoading(false);
       }
     };
     
     // iframe 로드 이벤트 핸들러 설정
     iframe.addEventListener('load', handleIframeLoad);
     
-    // iframe src 설정 - timeout으로 지연 처리 (DOM이 먼저 준비되도록)
+    // Set iframe source after a short delay to ensure DOM is ready
     setTimeout(() => {
-      console.log('Setting iframe source to:', entryPointUrl);
-      iframe.src = entryPointUrl;
+      // Clear any existing content and force a fresh load with cache busting
+      iframe.src = 'about:blank';
+      setTimeout(() => {
+        console.log('Setting iframe source with cache busting:', entryPointUrl);
+        const cacheBuster = `${entryPointUrl}${entryPointUrl.includes('?') ? '&' : '?'}nocache=${Date.now()}`;
+        iframe.src = cacheBuster;
+      }, 100);
       
-      // 5초 후에도 로딩이 완료되지 않으면 로딩 상태 해제 (UI 차단 방지)
+      // 8초 후에도 로딩이 완료되지 않으면 로딩 상태 해제 (UI 차단 방지)
       const timeoutId = setTimeout(() => {
-        if (isFrameLoading && !apiInjected) {
+        if (isFrameLoading) {
           console.log('Loading timeout reached, forcing UI to show iframe');
           setIsFrameLoading(false);
         }
-      }, 5000);
+      }, 8000);
       
       return () => clearTimeout(timeoutId);
-    }, 300);
+    }, 200);
     
     return () => {
       iframe.removeEventListener('load', handleIframeLoad);
@@ -94,7 +102,7 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
   }, [entryPointUrl, injectionAttempts]);
 
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-lg">
+    <div className="relative w-full h-full overflow-hidden rounded-lg bg-white">
       {isFrameLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/40 backdrop-blur-sm">
           <Skeleton className="w-full h-full absolute inset-0 -z-10" />
@@ -109,6 +117,7 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
         ref={iframeRef}
         title={title}
         className="w-full h-full bg-white"
+        style={{ border: 'none', display: 'block' }}
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         data-testid="scorm-iframe"
