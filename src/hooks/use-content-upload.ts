@@ -90,9 +90,17 @@ export const useContentUpload = () => {
       const safeFileName = getSafeFileName(file.name);
       const filePath = `${user.id}/${fileType}s/${Date.now()}_${safeFileName}`;
       
+      // Handle file upload with proper content type options
+      let options = {};
+      if (fileType === 'scorm') {
+        options = {
+          contentType: 'application/zip' // Specify the content type for SCORM zip files
+        };
+      }
+      
       const { data: fileData, error: fileError } = await supabase.storage
         .from('content_files')
-        .upload(filePath, file);
+        .upload(filePath, file, options);
       
       if (fileError) {
         console.error('Upload error:', fileError);
