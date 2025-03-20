@@ -1,4 +1,3 @@
-
 import { 
   commonEntryPaths, 
   extractEntryFromManifest, 
@@ -11,9 +10,15 @@ import { downloadAndLoadZip, extractAllFiles } from './zip-handler';
 /**
  * SCORM 패키지(ZIP)를 다운로드하고 추출하는 함수
  * @param fileUrl SCORM 패키지 URL
+ * @param onDownloadProgress 다운로드 진행 상태 콜백
+ * @param onExtractionProgress 압축 해제 진행 상태 콜백
  * @returns 추출된 콘텐츠의 HTML 엔트리 포인트와 추출된 파일들의 URL 맵
  */
-export const extractScormPackage = async (fileUrl: string): Promise<{
+export const extractScormPackage = async (
+  fileUrl: string,
+  onDownloadProgress?: (progress: number) => void,
+  onExtractionProgress?: (progress: number) => void
+): Promise<{
   entryPoint: string | null;
   extractedFiles: Map<string, string>;
   error?: string;
@@ -26,11 +31,11 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
 
     console.log('Extracting SCORM package from URL:', fileUrl);
     
-    // ZIP 파일 다운로드 및 로드
-    const { zip: loadedZip } = await downloadAndLoadZip(fileUrl);
+    // ZIP 파일 다운로드 및 로드 (with progress tracking)
+    const { zip: loadedZip } = await downloadAndLoadZip(fileUrl, onDownloadProgress);
     
-    // SCORM 콘텐츠의 모든 파일을 추출
-    const extractedFiles = await extractAllFiles(loadedZip);
+    // SCORM 콘텐츠의 모든 파일을 추출 (with progress tracking)
+    const extractedFiles = await extractAllFiles(loadedZip, onExtractionProgress);
     
     // SCORM 메타데이터 파일 (imsmanifest.xml)를 찾기 위한 변수
     let manifestFile = null;

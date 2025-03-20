@@ -6,9 +6,12 @@ import JSZip from 'jszip';
 import { getContentType } from './mime-types';
 
 /**
- * ZIP 파일 다운로드 및 로드
+ * ZIP 파일 다운로드 및 로드 with progress tracking
  */
-export const downloadAndLoadZip = async (fileUrl: string): Promise<{ 
+export const downloadAndLoadZip = async (
+  fileUrl: string, 
+  onProgress?: (progress: number) => void
+): Promise<{ 
   zip: JSZip; 
   zipData: ArrayBuffer;
 }> => {
@@ -19,12 +22,67 @@ export const downloadAndLoadZip = async (fileUrl: string): Promise<{
     throw new Error(`Failed to download SCORM package: ${response.statusText} (${response.status})`);
   }
   
-  const zipData = await response.arrayBuffer();
-  console.log('SCORM package downloaded, size:', zipData.byteLength);
+  // Get total file size for progress calculation
+  const contentLength = response.headers.get('content-length');
+  const total = contentLength ? parseInt(contentLength, 10) : 0;
   
-  // JSZip을 사용하여 ZIP 파일 추출
+  // If we can't determine size or no progress callback is provided, fall back to regular download
+  if (!total || !onProgress) {
+    const zipData = await response.arrayBuffer();
+    console.log('SCORM package downloaded, size:', zipData.byteLength);
+    
+    // JSZip을 사용하여 ZIP 파일 추출
+    const zip = new JSZip();
+    const loadedZip = await zip.loadAsync(zipData);
+    
+    return { zip: loadedZip, zipData };
+  }
+  
+  // Setup streaming download with progress tracking
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('Failed to get reader from response');
+  }
+  
+  let receivedLength = 0;
+  const chunks: Uint8Array[] = [];
+  
+  // Report initial progress
+  onProgress(0);
+  
+  // Process the stream chunks
+  while(true) {
+    const { done, value } = await reader.read();
+    
+    if (done) {
+      break;
+    }
+    
+    chunks.push(value);
+    receivedLength += value.length;
+    
+    // Calculate and report progress (0-100)
+    const progress = Math.min(Math.round((receivedLength / total) * 100), 100);
+    onProgress(progress);
+  }
+  
+  // Concatenate chunks into a single Uint8Array
+  const allChunks = new Uint8Array(receivedLength);
+  let position = 0;
+  for (const chunk of chunks) {
+    allChunks.set(chunk, position);
+    position += chunk.length;
+  }
+  
+  // Convert to ArrayBuffer and load with JSZip
+  const zipData = allChunks.buffer;
+  console.log('SCORM package downloaded with progress tracking, size:', zipData.byteLength);
+  
   const zip = new JSZip();
   const loadedZip = await zip.loadAsync(zipData);
+  
+  // Report completion
+  onProgress(100);
   
   return { zip: loadedZip, zipData };
 };
@@ -32,8 +90,16 @@ export const downloadAndLoadZip = async (fileUrl: string): Promise<{
 /**
  * ZIP 파일에서 모든 파일 추출 및 Blob URL 생성
  */
-export const extractAllFiles = async (loadedZip: JSZip): Promise<Map<string, string>> => {
+export const extractAllFiles = async (
+  loadedZip: JSZip, 
+  onProgress?: (progress: number) => void
+): Promise<Map<string, string>> => {
   const extractedFiles = new Map<string, string>();
+  const fileCount = Object.keys(loadedZip.files).filter(filename => !loadedZip.files[filename].dir).length;
+  let processedCount = 0;
+  
+  // Report initial extraction progress
+  if (onProgress) onProgress(0);
   
   const extractPromises = Object.keys(loadedZip.files).map(async (filename) => {
     const file = loadedZip.files[filename];
@@ -54,6 +120,13 @@ export const extractAllFiles = async (loadedZip: JSZip): Promise<Map<string, str
       // 디버깅을 위해 첫 10개 파일 경로 출력
       if (extractedFiles.size <= 10) {
         console.log(`Extracted file ${extractedFiles.size}: ${filename} -> ${blobUrl}`);
+      }
+      
+      // Update extraction progress
+      if (onProgress) {
+        processedCount++;
+        const progress = Math.min(Math.round((processedCount / fileCount) * 100), 100);
+        onProgress(progress);
       }
     } catch (err) {
       console.error(`Failed to extract file: ${filename}`, err);
