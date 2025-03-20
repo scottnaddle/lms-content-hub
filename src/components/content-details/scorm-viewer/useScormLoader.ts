@@ -115,11 +115,11 @@ export const useScormLoader = (fileUrl?: string) => {
       setEntryPointUrl(entryUrl);
       setStage('loading');
       
-      // Brief delay before marking as complete to allow the iframe to initialize
+      // Longer delay before marking as complete to allow the iframe to initialize
       setTimeout(() => {
         setStage('complete');
         setIsLoading(false);
-      }, 500);
+      }, 1000); // Increased from 500ms to 1000ms
       
     } catch (err: any) {
       console.error("SCORM 로드 오류:", err);

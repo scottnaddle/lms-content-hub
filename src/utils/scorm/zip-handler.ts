@@ -26,7 +26,7 @@ export const downloadAndLoadZip = async (
     
     const response = await fetch(cacheBustedUrl, {
       method: 'GET',
-      cache: 'no-cache',
+      cache: 'no-store', // Force network request
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
