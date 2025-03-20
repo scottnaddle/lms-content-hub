@@ -101,6 +101,16 @@ export const useContentUpload = () => {
         .from('content_files')
         .getPublicUrl(filePath);
       
+      // 태그 처리 로직 개선
+      const tagArray = tags
+        ? tags.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0) // 빈 태그 제거
+        : [];
+      
+      console.log('Processing tags:', tags);
+      console.log('Processed tag array:', tagArray);
+      
       const { data: contentData, error: contentError } = await supabase
         .from('contents')
         .insert({
@@ -109,12 +119,13 @@ export const useContentUpload = () => {
           content_type: fileType,
           file_path: filePath,
           created_by: user.id,
-          tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+          tags: tagArray, // 개선된 태그 배열 사용
         })
         .select('id')
         .single();
       
       if (contentError) {
+        console.error('Content insert error:', contentError);
         throw contentError;
       }
       
@@ -153,4 +164,3 @@ export const useContentUpload = () => {
     handleSubmit
   };
 };
-
