@@ -60,22 +60,26 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     // iframe 로드 이벤트 핸들러 설정
     iframe.addEventListener('load', handleIframeLoad);
     
-    // iframe src 설정
-    iframe.src = entryPointUrl;
-    
-    // 5초 후에도 로딩이 완료되지 않으면 로딩 상태 해제 (UI 차단 방지)
-    const timeoutId = setTimeout(() => {
-      if (isFrameLoading) {
-        console.log('Loading timeout reached, forcing UI to show iframe');
-        setIsFrameLoading(false);
-      }
-    }, 5000);
+    // iframe src 설정 - timeout으로 지연 처리 (DOM이 먼저 준비되도록)
+    setTimeout(() => {
+      console.log('Setting iframe source to:', entryPointUrl);
+      iframe.src = entryPointUrl;
+      
+      // 5초 후에도 로딩이 완료되지 않으면 로딩 상태 해제 (UI 차단 방지)
+      const timeoutId = setTimeout(() => {
+        if (isFrameLoading && !apiInjected) {
+          console.log('Loading timeout reached, forcing UI to show iframe');
+          setIsFrameLoading(false);
+        }
+      }, 5000);
+      
+      return () => clearTimeout(timeoutId);
+    }, 300);
     
     return () => {
       iframe.removeEventListener('load', handleIframeLoad);
-      clearTimeout(timeoutId);
     };
-  }, [entryPointUrl, injectionAttempts, isFrameLoading]);
+  }, [entryPointUrl, injectionAttempts]);
 
   return (
     <div className="relative w-full h-full overflow-hidden rounded-lg">
