@@ -95,6 +95,12 @@ export const contentTranslations: TranslationsCollection = {
     uz: 'Video',
     ko: '비디오',
   },
+  audio: {
+    en: 'Audio',
+    ru: 'Аудио',
+    uz: 'Audio',
+    ko: '오디오',
+  },
   pdf: {
     en: 'PDF',
     ru: 'PDF',
@@ -124,5 +130,11 @@ export const contentTranslations: TranslationsCollection = {
     ru: 'Загрузка...',
     uz: 'Yuklanmoqda...',
     ko: '업로드 중...',
+  },
+  uploadContent: {
+    en: 'Upload Content',
+    ru: 'Загрузить контент',
+    uz: 'Kontentni yuklash',
+    ko: '콘텐츠 업로드',
   },
 };

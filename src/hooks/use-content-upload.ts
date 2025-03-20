@@ -38,6 +38,27 @@ export const useContentUpload = () => {
     setFile(null);
   };
 
+  // 특수문자와 비 영숫자 문자를 제거하고 안전한 파일 이름 생성
+  const getSafeFileName = (originalName: string): string => {
+    // 파일 확장자 추출
+    const parts = originalName.split('.');
+    const extension = parts.pop() || '';
+    
+    // 파일 이름에서 확장자를 제외한 부분
+    const nameWithoutExtension = parts.join('.');
+    
+    // 파일 이름을 영숫자, 하이픈, 언더스코어로 제한
+    const safeNameWithoutExtension = nameWithoutExtension
+      .replace(/[^\w\s-]/g, '') // 영숫자, 공백, 하이픈만 허용
+      .replace(/\s+/g, '_'); // 공백을 언더스코어로 변환
+    
+    // 만약 안전한 이름이 비어있다면 타임스탬프 사용
+    const finalName = safeNameWithoutExtension || `file_${Date.now()}`;
+    
+    // 안전한 이름과 원래 확장자 결합
+    return `${finalName}.${extension}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -63,13 +84,16 @@ export const useContentUpload = () => {
         return;
       }
       
-      const filePath = `${user.id}/${fileType}s/${Date.now()}_${file.name}`;
+      // 안전한 파일 이름 생성
+      const safeFileName = getSafeFileName(file.name);
+      const filePath = `${user.id}/${fileType}s/${Date.now()}_${safeFileName}`;
       
       const { data: fileData, error: fileError } = await supabase.storage
         .from('content_files')
         .upload(filePath, file);
       
       if (fileError) {
+        console.error('Upload error:', fileError);
         throw fileError;
       }
       
@@ -129,3 +153,4 @@ export const useContentUpload = () => {
     handleSubmit
   };
 };
+
