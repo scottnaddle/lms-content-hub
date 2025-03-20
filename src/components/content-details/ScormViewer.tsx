@@ -4,7 +4,11 @@ import { AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { extractScormPackage, cleanupScormResources, injectScormApi } from '@/utils/scorm-utils';
+import { 
+  extractScormPackage, 
+  cleanupScormResources, 
+  injectScormApi 
+} from '@/utils/scorm';
 
 interface ScormViewerProps {
   fileUrl?: string;
@@ -168,3 +172,4 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
 };
 
 export default ScormViewer;
+
