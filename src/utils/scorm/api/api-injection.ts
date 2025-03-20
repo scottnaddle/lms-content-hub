@@ -42,11 +42,14 @@ const setupMessageListener = () => {
       }
       
       // Send the result back to the iframe
-      event.source?.postMessage({
-        scormAPIResponse: true,
-        callId,
-        result
-      }, '*');
+      if (event.source && event.source.postMessage) {
+        // Fixed: Use correct postMessage type
+        (event.source as Window).postMessage({
+          scormAPIResponse: true,
+          callId,
+          result
+        }, '*');
+      }
       
     } catch (error) {
       console.error('Error processing SCORM API message:', error);

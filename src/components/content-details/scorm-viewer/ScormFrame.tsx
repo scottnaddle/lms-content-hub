@@ -108,8 +108,11 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
       setTimeout(() => {
         if (iframe.contentWindow) {
           try {
-            // Try to inject directly if same origin
-            iframe.contentWindow.eval(script);
+            // Try to inject directly if same origin - use Function constructor instead of eval
+            const executeScript = new Function(script);
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write(`<script>${script}</script>`);
+            iframe.contentWindow.document.close();
             console.log('Successfully injected SCORM API Bridge directly');
           } catch (e) {
             console.log('Direct injection failed (expected for cross-origin), using postMessage');
