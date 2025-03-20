@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,6 +8,7 @@ import {
   cleanupScormResources, 
   injectScormApi 
 } from '@/utils/scorm';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ScormViewerProps {
   fileUrl?: string;
@@ -43,10 +43,20 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
         setIsLoading(true);
         setError(null);
         
-        console.log('Extracting SCORM package from URL:', fileUrl);
+        // 스토리지 URL로부터 서명된 URL 생성
+        const { data: signedUrlData, error: signedUrlError } = await supabase
+          .storage
+          .from('content_files')
+          .createSignedUrl(fileUrl, 60); // 60초 동안 유효
+
+        if (signedUrlError || !signedUrlData?.signedUrl) {
+          throw new Error(signedUrlError?.message || 'Failed to get signed URL');
+        }
+
+        console.log('Using signed URL for SCORM package:', signedUrlData.signedUrl);
         
         // SCORM 패키지 추출
-        const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(fileUrl);
+        const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(signedUrlData.signedUrl);
         
         if (!isMounted) return;
         
@@ -89,7 +99,6 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     
     return () => {
       isMounted = false;
-      // 리소스 정리
       if (extractedFiles.size > 0) {
         cleanupScormResources(extractedFiles);
       }

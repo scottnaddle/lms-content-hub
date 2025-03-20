@@ -1,4 +1,3 @@
-
 import JSZip from 'jszip';
 import { getContentType } from './mime-types';
 
@@ -20,15 +19,8 @@ export const extractScormPackage = async (fileUrl: string): Promise<{
 
     console.log('Extracting SCORM package from URL:', fileUrl);
     
-    // SCORM 패키지 다운로드
-    const response = await fetch(fileUrl, {
-      method: 'GET',
-      cache: 'no-cache',
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-      credentials: 'include' // 인증 정보 포함
-    });
+    // SCORM 패키지 다운로드 시도
+    const response = await fetch(fileUrl);
     
     if (!response.ok) {
       throw new Error(`Failed to download SCORM package: ${response.statusText} (${response.status})`);
