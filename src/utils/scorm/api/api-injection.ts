@@ -43,7 +43,7 @@ const setupMessageListener = () => {
       
       // Send the result back to the iframe
       if (event.source && event.source.postMessage) {
-        // Fixed: Use correct postMessage type
+        // Fixed: Use correct postMessage type by casting event.source to Window
         (event.source as Window).postMessage({
           scormAPIResponse: true,
           callId,

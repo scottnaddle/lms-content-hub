@@ -108,8 +108,7 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
       setTimeout(() => {
         if (iframe.contentWindow) {
           try {
-            // Try to inject directly if same origin - use Function constructor instead of eval
-            const executeScript = new Function(script);
+            // Try to inject directly if same origin - use document.write instead of eval
             iframe.contentWindow.document.open();
             iframe.contentWindow.document.write(`<script>${script}</script>`);
             iframe.contentWindow.document.close();
@@ -198,7 +197,8 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
         ref={iframeRef}
         title={title}
         className="w-full h-full border-0"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+        // 최대한 많은 권한을 부여
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-pointer-lock allow-top-navigation allow-modals"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       />
     </>
