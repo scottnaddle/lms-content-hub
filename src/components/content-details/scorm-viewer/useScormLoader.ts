@@ -28,16 +28,16 @@ export const useScormLoader = (fileUrl?: string) => {
     console.log('Getting signed URL for:', path);
     
     try {
-      // 더 긴 유효 시간 (1시간)으로 서명된 URL 요청
+      // Much longer expiration - 12 hours
       const { data, error } = await supabase
         .storage
         .from('content_files')
-        .createSignedUrl(path, 3600); // 1시간 동안 유효
+        .createSignedUrl(path, 43200); // 12 hours = 43200 seconds
       
       if (error) throw error;
       if (!data?.signedUrl) throw new Error('Failed to get signed URL');
       
-      console.log('Obtained signed URL with 1-hour expiration');
+      console.log('Obtained signed URL with 12-hour expiration');
       return data.signedUrl;
     } catch (err: any) {
       console.error('Signed URL error:', err);
@@ -61,12 +61,16 @@ export const useScormLoader = (fileUrl?: string) => {
       setDownloadProgress(0);
       setExtractionProgress(0);
       
-      // Parse file path and get signed URL
+      // Generate a unique identifier for this load attempt
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      console.log(`Starting SCORM load attempt ${uniqueId}`);
+      
+      // Parse file path and get signed URL with extremely long expiration
       const actualPath = parseFilePath(fileUrl);
       console.log('Parsed file path:', actualPath);
       
       const signedUrl = await getSignedUrl(actualPath);
-      console.log('Successfully got signed URL with longer expiration');
+      console.log('Successfully got signed URL with 12-hour expiration');
       
       // Extract SCORM package with progress tracking
       const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(
@@ -115,11 +119,12 @@ export const useScormLoader = (fileUrl?: string) => {
       setEntryPointUrl(entryUrl);
       setStage('loading');
       
-      // Longer delay before marking as complete to allow the iframe to initialize
+      // Delay before marking as complete to allow initialization
       setTimeout(() => {
         setStage('complete');
         setIsLoading(false);
-      }, 2000); // Increased delay to give iframe more time to load
+        console.log(`SCORM load attempt ${uniqueId} completed successfully`);
+      }, 1500);
       
     } catch (err: any) {
       console.error("SCORM 로드 오류:", err);

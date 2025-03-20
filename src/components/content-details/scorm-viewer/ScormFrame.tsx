@@ -30,18 +30,19 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
     const cacheBustedUrl = `${entryPointUrl}?cacheBust=${Date.now()}`;
     console.log('Setting iframe src to:', cacheBustedUrl);
     
-    // Handle iframe load event for API injection
+    // Inject SCORM API to window object BEFORE loading the iframe
+    // This is critical - we must inject to parent window before the iframe looks for it
+    try {
+      console.log('Pre-injecting SCORM API to parent window');
+      injectScormApi(null); // Inject to window without an iframe reference
+    } catch (error) {
+      console.error('Error pre-injecting SCORM API:', error);
+    }
+    
+    // Handle iframe load event
     const handleIframeLoad = () => {
       try {
-        console.log('Iframe loaded, preparing to inject SCORM API');
-        
-        // Use a small delay to ensure the iframe content is ready
-        setTimeout(() => {
-          if (iframeRef.current) {
-            const injectionSuccess = injectScormApi(iframeRef.current);
-            console.log('SCORM API injection result:', injectionSuccess ? 'success' : 'failed');
-          }
-        }, 500); // Increased delay for better reliability
+        console.log('Iframe loaded successfully');
       } catch (error) {
         console.error('Error during iframe load handling:', error);
         setLoadError('SCORM 콘텐츠를 로드하는 중 오류가 발생했습니다.');
@@ -85,8 +86,8 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
         ref={iframeRef}
         title={title}
         className="w-full h-full border-0"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-pointer-lock"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       />
     </>
   );

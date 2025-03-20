@@ -19,103 +19,100 @@ export const downloadAndLoadZip = async (
   console.log('Attempting to download SCORM package from URL:', fileUrl);
   
   try {
-    // Add stronger cache-busting with unique identifier
+    // Generate a unique request ID for this download
+    const requestId = Math.random().toString(36).substring(2, 15);
+    
+    // Add very aggressive cache-busting
     const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000000);
     const cacheBustedUrl = fileUrl.includes('?') 
-      ? `${fileUrl}&cacheBust=${timestamp}-${random}`
-      : `${fileUrl}?cacheBust=${timestamp}-${random}`;
+      ? `${fileUrl}&_nocache=${timestamp}-${requestId}`
+      : `${fileUrl}?_nocache=${timestamp}-${requestId}`;
     
-    const response = await fetch(cacheBustedUrl, {
-      method: 'GET',
-      cache: 'no-store', // Force network request
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      },
-      credentials: 'omit' // Don't send credentials for cross-origin requests
+    console.log(`Starting download with request ID: ${requestId}`);
+    
+    // Use XMLHttpRequest for better control and compatibility
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      // Set up progress tracking
+      xhr.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          onProgress(Math.min(percentComplete, 99)); // Cap at 99% until fully loaded
+        } else if (onProgress && event.loaded > 0) {
+          // If length isn't computable, use a simulated progress based on bytes
+          const simulatedProgress = Math.min(Math.round((event.loaded / 1000000) * 50), 99);
+          onProgress(simulatedProgress);
+        }
+      };
+      
+      xhr.onload = async () => {
+        if (xhr.status === 200) {
+          console.log(`Download completed for request ${requestId}, received bytes:`, xhr.response.byteLength);
+          
+          if (xhr.response.byteLength === 0) {
+            reject(new Error('Downloaded file is empty (0 bytes)'));
+            return;
+          }
+          
+          try {
+            // Complete the progress
+            if (onProgress) onProgress(100);
+            
+            // Load the ZIP file
+            const zip = new JSZip();
+            const loadedZip = await zip.loadAsync(xhr.response);
+            
+            if (Object.keys(loadedZip.files).length === 0) {
+              reject(new Error('Archive is empty or not a valid ZIP file'));
+              return;
+            }
+            
+            resolve({ zip: loadedZip, zipData: xhr.response });
+          } catch (error: any) {
+            console.error(`ZIP loading error for request ${requestId}:`, error);
+            reject(new Error(`파일을 압축 해제하는데 실패했습니다: ${error.message}`));
+          }
+        } else {
+          console.error(`HTTP error for request ${requestId}:`, xhr.status, xhr.statusText);
+          reject(new Error(`다운로드 실패: HTTP ${xhr.status} ${xhr.statusText}`));
+        }
+      };
+      
+      xhr.onerror = () => {
+        console.error(`Network error for request ${requestId}`);
+        reject(new Error('네트워크 오류로 인해 다운로드에 실패했습니다.'));
+      };
+      
+      xhr.onabort = () => {
+        console.warn(`Download aborted for request ${requestId}`);
+        reject(new Error('다운로드가 중단되었습니다.'));
+      };
+      
+      xhr.ontimeout = () => {
+        console.error(`Timeout error for request ${requestId}`);
+        reject(new Error('다운로드 시간이 초과되었습니다.'));
+      };
+      
+      // Open and send the request
+      xhr.open('GET', cacheBustedUrl, true);
+      xhr.responseType = 'arraybuffer';
+      
+      // Set headers to prevent caching
+      xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      xhr.setRequestHeader('Pragma', 'no-cache');
+      xhr.setRequestHeader('Expires', '0');
+      
+      // Set a generous timeout (30 seconds)
+      xhr.timeout = 30000;
+      
+      // Start the request
+      xhr.send();
+      
+      if (onProgress) onProgress(0); // Initialize progress
     });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to download SCORM package: ${response.statusText} (${response.status})`);
-    }
-    
-    // Get total file size for progress calculation
-    const contentLength = response.headers.get('content-length');
-    const total = contentLength ? parseInt(contentLength, 10) : 0;
-    
-    console.log('Download started, content length:', total);
-    
-    // Setup streaming download with progress tracking
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('Failed to get reader from response');
-    }
-    
-    let receivedLength = 0;
-    const chunks: Uint8Array[] = [];
-    
-    // Report initial progress
-    if (onProgress) onProgress(0);
-    
-    // Process the stream chunks
-    while(true) {
-      const { done, value } = await reader.read();
-      
-      if (done) {
-        console.log('Download completed, received total bytes:', receivedLength);
-        break;
-      }
-      
-      chunks.push(value);
-      receivedLength += value.length;
-      
-      // Calculate and report progress (0-100)
-      if (onProgress && total > 0) {
-        const progress = Math.min(Math.round((receivedLength / total) * 100), 100);
-        onProgress(progress);
-      } else if (onProgress) {
-        // If we can't determine total size, just use a simulated progress
-        const simulatedProgress = Math.min(Math.round((receivedLength / 1000000) * 100), 99);
-        onProgress(simulatedProgress);
-      }
-    }
-    
-    // Concatenate chunks into a single Uint8Array
-    const allChunks = new Uint8Array(receivedLength);
-    let position = 0;
-    for (const chunk of chunks) {
-      allChunks.set(chunk, position);
-      position += chunk.length;
-    }
-    
-    // Convert to ArrayBuffer and load with JSZip
-    const zipData = allChunks.buffer;
-    console.log('SCORM package downloaded, size:', zipData.byteLength);
-    
-    if (zipData.byteLength === 0) {
-      throw new Error('Downloaded file is empty (0 bytes)');
-    }
-    
-    const zip = new JSZip();
-    try {
-      const loadedZip = await zip.loadAsync(zipData);
-      
-      if (Object.keys(loadedZip.files).length === 0) {
-        throw new Error('Archive is empty or not a valid ZIP file');
-      }
-      
-      // Report completion
-      if (onProgress) onProgress(100);
-      
-      return { zip: loadedZip, zipData };
-    } catch (error: any) {
-      console.error('Failed to load ZIP:', error);
-      throw new Error(`파일을 압축 해제하는데 실패했습니다: ${error.message}`);
-    }
   } catch (error: any) {
-    console.error('Error downloading SCORM package:', error);
+    console.error('Error in download process:', error);
     throw error;
   }
 };
@@ -135,8 +132,8 @@ export const extractAllFiles = async (
   // Report initial extraction progress
   if (onProgress) onProgress(0);
   
-  // Process files in smaller batches for better browser performance
-  const batchSize = 5; // Reduced batch size
+  // Process files in very small batches for better browser performance
+  const batchSize = 3; // Even smaller batch size
   for (let i = 0; i < fileEntries.length; i += batchSize) {
     const batch = fileEntries.slice(i, i + batchSize);
     
@@ -171,8 +168,8 @@ export const extractAllFiles = async (
       }
     }));
     
-    // Small delay between batches to let the browser breathe
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // Larger delay between batches to let the browser breathe
+    await new Promise(resolve => setTimeout(resolve, 50));
   }
   
   console.log('Extraction complete, total files:', extractedFiles.size);
