@@ -3,10 +3,10 @@
 export { injectScormApi } from './api/api-injection';
 
 // SCORM 패키지 추출 및 관리 관련 내보내기
-export * from './scorm-extractor';
-export * from './scorm-cleanup';
-export * from './mime-types';
-export * from './entry-point-detector';
+export { extractScormPackage } from './extractor';
+export { cleanupScormResources } from './scorm-cleanup';
+export { getContentType } from './mime-types';
+export * from './entry-point';
 export * from './zip-handler';
 
 // 타입 내보내기
