@@ -1,3 +1,4 @@
+
 /**
  * SCORM API를 iframe에 주입하는 함수
  */
@@ -7,6 +8,55 @@ import { createScorm2004API } from './scorm2004-api';
 
 // Keep track of whether we've already injected the API
 let apiInjected = false;
+let scormAPI: any = null;
+let scorm2004API: any = null;
+
+/**
+ * PostMessage 기반 SCORM API 통신 설정
+ */
+const setupMessageListener = () => {
+  if (window.scormMessageHandlerSet) return;
+  
+  window.addEventListener('message', (event) => {
+    try {
+      const data = event.data;
+      
+      // Only process SCORM API requests
+      if (!data || !data.scormAPICall) return;
+      
+      console.log('Received SCORM API call via postMessage:', data);
+      
+      const { scormVersion, method, params, callId } = data;
+      let result;
+      
+      // Call the appropriate API method
+      if (scormVersion === '2004') {
+        if (scorm2004API && typeof scorm2004API[method] === 'function') {
+          result = scorm2004API[method].apply(scorm2004API, params || []);
+        }
+      } else {
+        // Default to SCORM 1.2
+        if (scormAPI && typeof scormAPI[method] === 'function') {
+          result = scormAPI[method].apply(scormAPI, params || []);
+        }
+      }
+      
+      // Send the result back to the iframe
+      event.source?.postMessage({
+        scormAPIResponse: true,
+        callId,
+        result
+      }, '*');
+      
+    } catch (error) {
+      console.error('Error processing SCORM API message:', error);
+    }
+  });
+  
+  // Mark that we've set up the handler
+  window.scormMessageHandlerSet = true;
+  console.log('SCORM postMessage handler installed');
+};
 
 /**
  * SCORM API를 window에 주입하는 함수
@@ -15,61 +65,41 @@ let apiInjected = false;
  */
 export const injectScormApi = (iframe: HTMLIFrameElement | null): boolean => {
   try {
-    // If we've already injected the API, don't do it again
+    // If we've already created the APIs, just return
     if (apiInjected) {
-      console.log('SCORM API already injected, skipping');
+      console.log('SCORM API already created, skipping initialization');
       return true;
     }
     
-    console.log('Injecting SCORM API into parent window');
+    console.log('Creating SCORM API handlers');
     
     // SCORM 데이터 저장소 초기화
     const scormData = createDefaultScormData();
     
     // SCORM 1.2 API 생성
-    const API = createScorm12API(scormData);
+    scormAPI = createScorm12API(scormData);
     
     // SCORM 2004 API 생성
-    const API_1484_11 = createScorm2004API(scormData);
+    scorm2004API = createScorm2004API(scormData);
     
-    // Inject APIs into the parent window
-    // This is the safest approach as the iframe will look for API in parent
+    // Set up message listener for cross-domain communication
+    setupMessageListener();
+    
+    // Mark as API objects created
+    apiInjected = true;
+    
+    // Inject APIs into window for same-origin content
     try {
-      // Primary approach: Add API to window
-      window.API = API;
-      window.API_1484_11 = API_1484_11;
-      
-      // Make window.parent also point to our APIs (needed for some SCORM packages)
-      if (window.parent) {
-        window.parent.API = API;
-        window.parent.API_1484_11 = API_1484_11;
-      }
-      
-      // Also add to window.top for nested frames
-      if (window.top) {
-        window.top.API = API;
-        window.top.API_1484_11 = API_1484_11;
-      }
-      
-      console.log('SCORM API successfully injected to parent window');
-      
-      // Add simple emulation for older AICC content
-      try {
-        window.AICC_API = API;
-      } catch (e) {
-        console.warn('Failed to add AICC API compatibility');
-      }
-      
-      // Mark as injected
-      apiInjected = true;
-      
-      return true;
+      window.API = scormAPI;
+      window.API_1484_11 = scorm2004API;
+      console.log('SCORM API objects assigned to window for same-origin content');
     } catch (error) {
-      console.error('Failed during SCORM API injection:', error);
-      return false;
+      console.warn('Note: Could not assign API to window directly:', error);
     }
+    
+    return true;
   } catch (error) {
-    console.error('Critical error in SCORM API injection:', error);
+    console.error('Critical error in SCORM API creation:', error);
     return false;
   }
 };
@@ -77,8 +107,9 @@ export const injectScormApi = (iframe: HTMLIFrameElement | null): boolean => {
 // Add API to the global window object
 declare global {
   interface Window {
-    API: any;
-    API_1484_11: any;
+    API?: any;
+    API_1484_11?: any;
     AICC_API?: any;
+    scormMessageHandlerSet?: boolean;
   }
 }

@@ -5,6 +5,7 @@ import ScormProgress from './ScormProgress';
 import ScormError from './ScormError';
 import { useScormLoader } from './useScormLoader';
 import { cleanupScormResources } from '@/utils/scorm/scorm-cleanup';
+import { injectScormApi } from '@/utils/scorm';
 
 interface ScormViewerProps {
   fileUrl?: string;
@@ -41,11 +42,25 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     retryCount
   });
   
-  // Cleanup resources on unmount
+  // Initialize SCORM API handlers once when component mounts
+  useEffect(() => {
+    // Early initialize SCORM API handlers in parent window
+    injectScormApi(null);
+    
+    return () => {
+      // Cleanup when component unmounts
+      if (extractedFiles.size > 0) {
+        console.log('Cleaning up SCORM resources');
+        cleanupScormResources(extractedFiles);
+      }
+    };
+  }, []);
+  
+  // Cleanup resources on unmount or when files change
   useEffect(() => {
     return () => {
       if (extractedFiles.size > 0) {
-        console.log('Cleaning up SCORM resources');
+        console.log('Cleaning up SCORM resources on files change');
         cleanupScormResources(extractedFiles);
       }
     };
