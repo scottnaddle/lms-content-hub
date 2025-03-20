@@ -4,7 +4,7 @@ import ScormFrame from './ScormFrame';
 import ScormProgress from './ScormProgress';
 import ScormError from './ScormError';
 import { useScormLoader } from './useScormLoader';
-import { cleanupScormResources } from '@/utils/scorm';
+import { cleanupScormResources } from '@/utils/scorm/scorm-cleanup';
 
 interface ScormViewerProps {
   fileUrl?: string;
@@ -24,7 +24,8 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     downloadProgress,
     extractionProgress,
     stage,
-    extractedFiles
+    extractedFiles,
+    retryLoading
   } = useScormLoader(fileUrl);
   
   // Debug logging
@@ -61,12 +62,13 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
       {error && (
         <ScormError 
           error={error} 
-          onDownload={onDownload} 
+          onDownload={onDownload}
+          onRetry={retryLoading}
         />
       )}
       
       <div 
-        className={`w-full h-[70vh] border rounded-lg ${(isLoading || error) ? 'hidden' : 'block'}`}
+        className={`w-full h-[70vh] border rounded-lg overflow-hidden transition-opacity duration-300 ${(isLoading || error) ? 'hidden' : 'block animate-fade-in'}`}
         data-testid="scorm-container"
       >
         {entryPointUrl && !isLoading && !error && (

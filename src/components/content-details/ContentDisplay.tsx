@@ -23,7 +23,7 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({
   console.log('ContentDisplay: Content type and file URL', { contentType, fileUrl });
   
   return (
-    <div className="glass-panel p-6">
+    <div className="glass-panel p-6 overflow-hidden">
       {contentType === 'video' && (
         <VideoPlayer fileUrl={fileUrl} thumbnailUrl={thumbnailUrl} title={title} />
       )}
