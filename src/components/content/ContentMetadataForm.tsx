@@ -76,6 +76,7 @@ const ContentMetadataForm: React.FC<ContentMetadataFormProps> = ({
               <SelectItem value="audio">{t('audio')}</SelectItem>
               <SelectItem value="pdf">{t('pdf')}</SelectItem>
               <SelectItem value="document">{t('document')}</SelectItem>
+              <SelectItem value="scorm">{t('scorm')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

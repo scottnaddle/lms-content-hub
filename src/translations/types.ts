@@ -22,6 +22,7 @@ export interface ContentLibraryTranslations {
     audio: string;
     documents: string;
     pdfs: string;
+    scorm: string;
     search: string;
     searchContent: string;
     filterBy: string;

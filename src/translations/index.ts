@@ -5,9 +5,11 @@ import { navigationTranslations } from './navigation';
 import { dashboardTranslations } from './dashboard';
 import { contentTranslations } from './content';
 import { ltiTranslations } from './lti';
-import { contentLibraryTranslations } from './content-library';
-import { contentDetailsTranslations } from './content-details';
 import { errorTranslations } from './errors';
+import { contentDetailsTranslations } from './content-details';
+
+// Import but don't merge ContentLibraryTranslations type which is different from TranslationsCollection
+import { contentLibraryTranslations } from './content-library';
 
 // Combine all translation collections
 export const translations: TranslationsCollection = {
@@ -16,7 +18,6 @@ export const translations: TranslationsCollection = {
   ...dashboardTranslations,
   ...contentTranslations,
   ...ltiTranslations,
-  ...contentLibraryTranslations,
   ...contentDetailsTranslations,
   ...errorTranslations,
 };
@@ -32,3 +33,6 @@ export function translate<K extends keyof typeof translations>(
   console.warn(`Translation missing for key: ${key}, language: ${lang}`);
   return `${key}`;
 }
+
+// Export contentLibraryTranslations separately since it has a different structure
+export { contentLibraryTranslations };

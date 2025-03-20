@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, X, FileText, Video, FileAudio, File as FileIcon } from 'lucide-react';
+import { Upload, X, FileText, Video, FileAudio, File as FileIcon, FileArchive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -54,6 +54,8 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
         return <FileAudio className="h-12 w-12 text-primary/50" />;
       case 'pdf':
         return <FileText className="h-12 w-12 text-primary/50" />;
+      case 'scorm':
+        return <FileArchive className="h-12 w-12 text-primary/50" />;
       default:
         return <FileIcon className="h-12 w-12 text-primary/50" />;
     }

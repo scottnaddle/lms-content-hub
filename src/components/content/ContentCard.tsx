@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { File, Video, FileAudio, FileText, MoreVertical, ExternalLink, Download, Lock } from 'lucide-react';
+import { File, Video, FileAudio, FileText, MoreVertical, ExternalLink, Download, Lock, FileArchive } from 'lucide-react';
 import { Chip } from '@/components/ui/chip';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export type ContentType = 'video' | 'audio' | 'pdf' | 'document';
+export type ContentType = 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
 
 interface ContentCardProps {
   id: string;
@@ -30,6 +30,7 @@ const contentTypeIcons = {
   audio: FileAudio,
   pdf: FileText,
   document: File,
+  scorm: FileArchive,
 };
 
 const ContentCard: React.FC<ContentCardProps> = ({

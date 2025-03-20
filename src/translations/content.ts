@@ -16,10 +16,10 @@ export const contentTranslations: TranslationsCollection = {
     ko: '콘텐츠 업로드',
   },
   uploadDescription: {
-    en: 'Upload videos, audio files, PDFs, and other documents to your content library.',
-    ru: 'Загрузите видео, аудиофайлы, PDF-файлы и другие документы в вашу библиотеку контента.',
-    uz: 'Video, audio fayllar, PDF va boshqa hujjatlarni kontent kutubxonangizga yuklang.',
-    ko: '비디오, 오디오 파일, PDF 및 기타 문서를 콘텐츠 라이브러리에 업로드하세요.',
+    en: 'Upload videos, audio files, PDFs, SCORM packages, and other documents to your content library.',
+    ru: 'Загрузите видео, аудиофайлы, PDF-файлы, пакеты SCORM и другие документы в вашу библиотеку контента.',
+    uz: 'Video, audio fayllar, PDF, SCORM paketlar va boshqa hujjatlarni kontent kutubxonangizga yuklang.',
+    ko: '비디오, 오디오 파일, PDF, SCORM 패키지 및 기타 문서를 콘텐츠 라이브러리에 업로드하세요.',
   },
   // File upload related translations
   removeFile: {
@@ -47,10 +47,10 @@ export const contentTranslations: TranslationsCollection = {
     ko: '파일 찾기',
   },
   supportedFormats: {
-    en: 'Supported formats: MP4, MP3, PDF, DOC, DOCX, etc.',
-    ru: 'Поддерживаемые форматы: MP4, MP3, PDF, DOC, DOCX и др.',
-    uz: 'Qo\'llab-quvvatlanadigan formatlar: MP4, MP3, PDF, DOC, DOCX va boshqalar.',
-    ko: '지원 형식: MP4, MP3, PDF, DOC, DOCX 등',
+    en: 'Supported formats: MP4, MP3, PDF, DOC, DOCX, SCORM (.zip), etc.',
+    ru: 'Поддерживаемые форматы: MP4, MP3, PDF, DOC, DOCX, SCORM (.zip) и др.',
+    uz: 'Qo\'llab-quvvatlanadigan formatlar: MP4, MP3, PDF, DOC, DOCX, SCORM (.zip) va boshqalar.',
+    ko: '지원 형식: MP4, MP3, PDF, DOC, DOCX, SCORM (.zip) 등',
   },
   // Content metadata form translations
   contentTitle: {
@@ -112,6 +112,12 @@ export const contentTranslations: TranslationsCollection = {
     ru: 'Документ',
     uz: 'Hujjat',
     ko: '문서',
+  },
+  scorm: {
+    en: 'SCORM',
+    ru: 'SCORM',
+    uz: 'SCORM',
+    ko: 'SCORM',
   },
   tagsWithSeparator: {
     en: 'Tags (comma separated)',

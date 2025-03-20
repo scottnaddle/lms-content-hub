@@ -3,9 +3,10 @@ import React from 'react';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
 import DocumentViewer from './DocumentViewer';
+import ScormViewer from './ScormViewer';
 
 interface ContentDisplayProps {
-  contentType: 'video' | 'audio' | 'pdf' | 'document';
+  contentType: 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
   fileUrl?: string;
   thumbnailUrl?: string;
   title: string;
@@ -35,6 +36,14 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({
           contentType={contentType} 
           title={title} 
           onDownload={onDownload} 
+        />
+      )}
+
+      {contentType === 'scorm' && (
+        <ScormViewer
+          fileUrl={fileUrl}
+          title={title}
+          onDownload={onDownload}
         />
       )}
     </div>

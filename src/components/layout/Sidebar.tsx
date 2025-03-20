@@ -14,7 +14,8 @@ import {
   GraduationCap,
   Upload,
   Share2,
-  BarChart
+  BarChart,
+  FileArchive
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -108,6 +109,7 @@ const Sidebar = ({ isOpen, closeSidebar }: SidebarProps) => {
               <NavItem to="/videos" icon={Video} label={t('videos')} />
               <NavItem to="/audio" icon={Headphones} label={t('audio')} />
               <NavItem to="/documents" icon={FileText} label={t('documents')} />
+              <NavItem to="/scorms" icon={FileArchive} label={t('scorm')} />
               <NavItem to="/collections" icon={Folder} label={t('collections')} />
               <NavItem to="/tags" icon={Tag} label={t('tags')} />
             </nav>

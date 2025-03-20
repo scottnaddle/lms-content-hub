@@ -26,6 +26,8 @@ export const useContentUpload = () => {
         setFileType('audio');
       } else if (fileExtension === 'pdf') {
         setFileType('pdf');
+      } else if (fileExtension === 'zip') {
+        setFileType('scorm');
       } else {
         setFileType('document');
       }
