@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { extractScormPackage, cleanupScormResources, injectScormApi } from '@/utils/scorm-utils';
 
 interface ScormViewerProps {
@@ -36,6 +37,9 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
 
       try {
         setIsLoading(true);
+        setError(null);
+        
+        console.log('Extracting SCORM package from URL:', fileUrl);
         
         // SCORM 패키지 추출
         const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(fileUrl);
@@ -43,6 +47,7 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
         if (!isMounted) return;
         
         if (extractError) {
+          console.error('SCORM extraction error:', extractError);
           setError(extractError);
           setIsLoading(false);
           return;
@@ -53,6 +58,8 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
           setIsLoading(false);
           return;
         }
+        
+        console.log('SCORM entry point found:', entryPoint);
         
         // 추출된 파일 및 진입점 설정
         setExtractedFiles(files);
@@ -88,15 +95,23 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
     const iframe = iframeRef.current;
     
     const handleIframeLoad = () => {
-      // iframe이 로드된 후 SCORM API 주입
-      injectScormApi(iframe);
-      setIsLoading(false);
+      try {
+        // iframe이 로드된 후 SCORM API 주입
+        console.log('Iframe loaded, injecting SCORM API');
+        injectScormApi(iframe);
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to inject SCORM API:', err);
+        setError('SCORM API 주입에 실패했습니다');
+        setIsLoading(false);
+      }
     };
     
     // iframe 로드 이벤트 핸들러 설정
     iframe.addEventListener('load', handleIframeLoad);
     
     // iframe src 설정
+    console.log('Setting iframe source to:', entryPointUrl);
     iframe.src = entryPointUrl;
     
     return () => {
@@ -107,6 +122,7 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
   // 리소스 정리
   useEffect(() => {
     return () => {
+      console.log('Cleaning up SCORM resources');
       cleanupScormResources(extractedFiles);
     };
   }, []);
@@ -116,25 +132,34 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
       {isLoading && (
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="ml-3">SCORM 콘텐츠를 로드 중입니다...</p>
         </div>
       )}
       
       {error && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg text-center">
-          <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-          <p className="mb-3 text-yellow-700 dark:text-yellow-400">{error}</p>
-          <Button onClick={onDownload} variant="outline">
-            {t('downloadPackage')}
-          </Button>
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle className="ml-2">SCORM 로딩 오류</AlertTitle>
+          <AlertDescription className="mt-2">
+            {error}
+            <div className="mt-4">
+              <Button onClick={onDownload} variant="outline" size="sm">
+                {t('downloadPackage')}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
       )}
       
-      <div className={`w-full h-[70vh] border rounded-lg overflow-hidden ${(isLoading || error) ? 'hidden' : ''}`}>
+      <div 
+        className={`w-full h-[70vh] border rounded-lg overflow-hidden ${(isLoading || error) ? 'hidden' : ''}`}
+        data-testid="scorm-container"
+      >
         <iframe 
           ref={iframeRef}
           title={title}
           className="w-full h-full"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         />
       </div>
