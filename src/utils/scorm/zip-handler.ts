@@ -16,75 +16,82 @@ export const downloadAndLoadZip = async (
   zipData: ArrayBuffer;
 }> => {
   // SCORM 패키지 다운로드 시도
-  const response = await fetch(fileUrl);
+  console.log('Attempting to download SCORM package from URL:', fileUrl);
   
-  if (!response.ok) {
-    throw new Error(`Failed to download SCORM package: ${response.statusText} (${response.status})`);
-  }
-  
-  // Get total file size for progress calculation
-  const contentLength = response.headers.get('content-length');
-  const total = contentLength ? parseInt(contentLength, 10) : 0;
-  
-  // If we can't determine size or no progress callback is provided, fall back to regular download
-  if (!total || !onProgress) {
-    const zipData = await response.arrayBuffer();
-    console.log('SCORM package downloaded, size:', zipData.byteLength);
+  try {
+    const response = await fetch(fileUrl);
     
-    // JSZip을 사용하여 ZIP 파일 추출
+    if (!response.ok) {
+      throw new Error(`Failed to download SCORM package: ${response.statusText} (${response.status})`);
+    }
+    
+    // Get total file size for progress calculation
+    const contentLength = response.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+    
+    // If we can't determine size or no progress callback is provided, fall back to regular download
+    if (!total || !onProgress) {
+      const zipData = await response.arrayBuffer();
+      console.log('SCORM package downloaded, size:', zipData.byteLength);
+      
+      // JSZip을 사용하여 ZIP 파일 추출
+      const zip = new JSZip();
+      const loadedZip = await zip.loadAsync(zipData);
+      
+      return { zip: loadedZip, zipData };
+    }
+    
+    // Setup streaming download with progress tracking
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Failed to get reader from response');
+    }
+    
+    let receivedLength = 0;
+    const chunks: Uint8Array[] = [];
+    
+    // Report initial progress
+    onProgress(0);
+    
+    // Process the stream chunks
+    while(true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        break;
+      }
+      
+      chunks.push(value);
+      receivedLength += value.length;
+      
+      // Calculate and report progress (0-100)
+      const progress = Math.min(Math.round((receivedLength / total) * 100), 100);
+      onProgress(progress);
+    }
+    
+    // Concatenate chunks into a single Uint8Array
+    const allChunks = new Uint8Array(receivedLength);
+    let position = 0;
+    for (const chunk of chunks) {
+      allChunks.set(chunk, position);
+      position += chunk.length;
+    }
+    
+    // Convert to ArrayBuffer and load with JSZip
+    const zipData = allChunks.buffer;
+    console.log('SCORM package downloaded with progress tracking, size:', zipData.byteLength);
+    
     const zip = new JSZip();
     const loadedZip = await zip.loadAsync(zipData);
     
+    // Report completion
+    onProgress(100);
+    
     return { zip: loadedZip, zipData };
+  } catch (error) {
+    console.error('Error downloading SCORM package:', error);
+    throw error;
   }
-  
-  // Setup streaming download with progress tracking
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error('Failed to get reader from response');
-  }
-  
-  let receivedLength = 0;
-  const chunks: Uint8Array[] = [];
-  
-  // Report initial progress
-  onProgress(0);
-  
-  // Process the stream chunks
-  while(true) {
-    const { done, value } = await reader.read();
-    
-    if (done) {
-      break;
-    }
-    
-    chunks.push(value);
-    receivedLength += value.length;
-    
-    // Calculate and report progress (0-100)
-    const progress = Math.min(Math.round((receivedLength / total) * 100), 100);
-    onProgress(progress);
-  }
-  
-  // Concatenate chunks into a single Uint8Array
-  const allChunks = new Uint8Array(receivedLength);
-  let position = 0;
-  for (const chunk of chunks) {
-    allChunks.set(chunk, position);
-    position += chunk.length;
-  }
-  
-  // Convert to ArrayBuffer and load with JSZip
-  const zipData = allChunks.buffer;
-  console.log('SCORM package downloaded with progress tracking, size:', zipData.byteLength);
-  
-  const zip = new JSZip();
-  const loadedZip = await zip.loadAsync(zipData);
-  
-  // Report completion
-  onProgress(100);
-  
-  return { zip: loadedZip, zipData };
 };
 
 /**

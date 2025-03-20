@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -53,17 +52,29 @@ const ScormViewer: React.FC<ScormViewerProps> = ({
         setDownloadProgress(0);
         setExtractionProgress(0);
         
-        // 스토리지 URL로부터 서명된 URL 생성
+        // 스토리지 URL 가져오기 - 올바른 경로 확인
+        console.log('Original file path:', fileUrl);
+        
+        // Extract the actual file path from the full URL if it's a full URL
+        let actualPath = fileUrl;
+        if (fileUrl.includes('content_files/')) {
+          actualPath = fileUrl.split('content_files/')[1];
+        }
+        
+        console.log('Parsed file path for signed URL:', actualPath);
+        
+        // 서명된 URL 생성
         const { data: signedUrlData, error: signedUrlError } = await supabase
           .storage
           .from('content_files')
-          .createSignedUrl(fileUrl, 60); // 60초 동안 유효
+          .createSignedUrl(actualPath, 60); // 60초 동안 유효
 
         if (signedUrlError || !signedUrlData?.signedUrl) {
+          console.error('Failed to get signed URL:', signedUrlError);
           throw new Error(signedUrlError?.message || 'Failed to get signed URL');
         }
 
-        console.log('Using signed URL for SCORM package:', signedUrlData.signedUrl);
+        console.log('Successfully got signed URL:', signedUrlData.signedUrl);
         
         // SCORM 패키지 추출 with progress tracking
         const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(
