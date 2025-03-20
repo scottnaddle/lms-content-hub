@@ -10,6 +10,7 @@ import {
   selectBestHtmlFile 
 } from '../entry-point';
 import { downloadAndLoadZip, extractAllFiles } from '../zip-handler';
+import { findScormEntryPoint } from './entry-point-finder';
 
 /**
  * SCORM 패키지(ZIP)를 다운로드하고 추출하는 함수

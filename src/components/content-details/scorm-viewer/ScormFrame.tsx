@@ -52,6 +52,18 @@ const ScormFrame: React.FC<ScormFrameProps> = ({
             }
           }
         }, 500);
+
+        // Force reload if iframe appears empty after loading
+        setTimeout(() => {
+          const iframeDoc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+          if (iframeDoc && (!iframeDoc.body || !iframeDoc.body.innerHTML.trim())) {
+            console.warn('Iframe appears to be empty, forcing reload');
+            if (injectionAttempts < 3) {
+              iframe.src = entryPointUrl + (entryPointUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+              setInjectionAttempts(prev => prev + 1);
+            }
+          }
+        }, 1000);
       } catch (err) {
         console.error('Failed to inject SCORM API:', err);
       }
