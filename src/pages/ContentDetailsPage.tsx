@@ -74,6 +74,8 @@ const ContentDetailsPage: React.FC = () => {
             
             <ContentActions 
               isOwner={isOwner} 
+              contentId={content.id}
+              contentType={content.content_type}
               downloadCount={content.download_count} 
               onDownload={handleDownload} 
               onDelete={handleDelete} 

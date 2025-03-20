@@ -9,6 +9,7 @@ import UploadPage from "./pages/UploadPage";
 import LTIConfigPage from "./pages/LTIConfigPage";
 import ContentTypePage from "./pages/ContentTypePage";
 import ContentDetailsPage from "./pages/ContentDetailsPage";
+import EditContentPage from "./pages/EditContentPage";
 import RecentlyViewedPage from "./pages/RecentlyViewedPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import SearchPage from "./pages/SearchPage";
@@ -58,6 +59,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ContentDetailsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/edit/:type/:id" 
+                element={
+                  <ProtectedRoute>
+                    <EditContentPage />
                   </ProtectedRoute>
                 } 
               />
