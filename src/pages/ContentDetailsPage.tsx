@@ -93,7 +93,7 @@ const ContentDetailsPage: React.FC = () => {
             onDownload={handleDownload}
           />
 
-          <LTIIntegration />
+          <LTIIntegration contentId={content.id} />
         </div>
       </div>
     </PageLayout>
