@@ -48,15 +48,22 @@ const ContentTypePage: React.FC = () => {
         if (error) throw error;
         
         if (data) {
-          // Supabase 데이터를 ContentItem 형식으로 변환
-          const contentItems: ContentItem[] = await Promise.all(data.map(async (item) => {
-            // 파일 URL 가져오기
+          // Convert Supabase data to ContentItem format
+          const contentItems: ContentItem[] = [];
+          
+          for (const item of data) {
             let thumbnail = '';
+            
+            // Debug: Check if there's a thumbnail_url
+            console.log(`Content ${item.id}: thumbnail_url = ${item.thumbnail_url}`);
+            
             if (item.thumbnail_url) {
+              // Get the public URL for the thumbnail
               thumbnail = await getFileUrl(item.thumbnail_url);
+              console.log(`Generated thumbnail URL: ${thumbnail}`);
             }
             
-            return {
+            contentItems.push({
               id: item.id,
               title: item.title,
               description: item.description || '',
@@ -64,8 +71,8 @@ const ContentTypePage: React.FC = () => {
               thumbnail: thumbnail,
               dateAdded: item.created_at,
               tags: item.tags || [],
-            };
-          }));
+            });
+          }
           
           setContents(contentItems);
         }
