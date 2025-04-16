@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ContentTypeHeader from '@/components/content-type/ContentTypeHeader';
 import ContentSearch from '@/components/content-type/ContentSearch';
+import { getFileUrl } from '@/utils/content-utils';
 
 const ContentTypePage: React.FC = () => {
   const { type } = useParams<{ type: string }>();
@@ -52,17 +53,14 @@ const ContentTypePage: React.FC = () => {
             // 파일 URL 가져오기
             let thumbnail = '';
             if (item.thumbnail_url) {
-              const { data: urlData } = await supabase.storage
-                .from('content_files')
-                .getPublicUrl(item.thumbnail_url || '');
-              thumbnail = urlData?.publicUrl || '';
+              thumbnail = await getFileUrl(item.thumbnail_url);
             }
             
             return {
               id: item.id,
               title: item.title,
               description: item.description || '',
-              type: item.content_type as 'video' | 'audio' | 'pdf' | 'document',
+              type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm',
               thumbnail: thumbnail,
               dateAdded: item.created_at,
               tags: item.tags || [],
