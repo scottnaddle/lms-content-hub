@@ -41,10 +41,10 @@ export const useContentActions = (content: ContentDetails | null) => {
       }
       
       // Delete thumbnail
-      if (content.thumbnail_path) {
+      if (content.thumbnail_url) {
         await supabase.storage
           .from('content_files')
-          .remove([content.thumbnail_path]);
+          .remove([content.thumbnail_url]);
       }
       
       // Delete content from database
@@ -79,3 +79,4 @@ export const useContentActions = (content: ContentDetails | null) => {
     handleDelete
   };
 };
+
