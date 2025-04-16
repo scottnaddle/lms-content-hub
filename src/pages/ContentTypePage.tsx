@@ -20,13 +20,11 @@ const ContentTypePage: React.FC = () => {
   const contentType = type?.toLowerCase() || '';
   const typeLabel = capitalizeFirstLetter(contentType);
   
-  // Supabase에서 콘텐츠 로드
   useEffect(() => {
     const loadContents = async () => {
       try {
         setIsLoading(true);
         
-        // contentType에서 's'를 제거하여 단수형으로 변환 (videos -> video)
         const singularType = contentType.endsWith('s') 
           ? contentType.slice(0, -1) 
           : contentType;
@@ -36,7 +34,6 @@ const ContentTypePage: React.FC = () => {
           .select('*')
           .order('created_at', { ascending: false });
         
-        // For documents page, include both 'document' and 'pdf' types
         if (singularType === 'document') {
           query = query.or('content_type.eq.document,content_type.eq.pdf');
         } else {
@@ -45,22 +42,29 @@ const ContentTypePage: React.FC = () => {
         
         const { data, error } = await query;
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching contents:', error);
+          throw error;
+        }
         
         if (data) {
-          // Convert Supabase data to ContentItem format
           const contentItems: ContentItem[] = [];
           
           for (const item of data) {
             let thumbnail = '';
             
-            // Debug: Check if there's a thumbnail_url
-            console.log(`Content ${item.id}: thumbnail_url = ${item.thumbnail_url}`);
+            console.log(`Processing content: ${item.id}`);
+            console.log(`Thumbnail URL from database: ${item.thumbnail_url}`);
             
-            if (item.thumbnail_url) {
-              // Get the public URL for the thumbnail
-              thumbnail = await getFileUrl(item.thumbnail_url);
-              console.log(`Generated thumbnail URL: ${thumbnail}`);
+            try {
+              if (item.thumbnail_url) {
+                thumbnail = await getFileUrl(item.thumbnail_url);
+                console.log(`Generated thumbnail URL for ${item.id}: ${thumbnail}`);
+              } else {
+                console.warn(`No thumbnail URL for content ${item.id}`);
+              }
+            } catch (thumbnailError) {
+              console.error(`Error getting thumbnail for ${item.id}:`, thumbnailError);
             }
             
             contentItems.push({
