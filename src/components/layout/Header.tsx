@@ -100,7 +100,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{t('myAccount')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   <span>{t('profile')}</span>
                 </DropdownMenuItem>
