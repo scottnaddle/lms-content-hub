@@ -16,6 +16,7 @@ import SearchPage from "./pages/SearchPage";
 import TagsPage from "./pages/TagsPage";
 import AuthPage from "./pages/AuthPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
+import UserProfilePage from "./pages/UserProfilePage";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
@@ -51,6 +52,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <LTIConfigPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <UserProfilePage />
                   </ProtectedRoute>
                 } 
               />
