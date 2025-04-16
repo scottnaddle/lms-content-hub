@@ -45,13 +45,17 @@ const EditContentPage: React.FC = () => {
         
         if (data) {
           // Cast content_type to the expected union type
-          const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document';
+          const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
           
           // Set the content with the properly typed content_type
-          setContent({
+          const contentDetails: ContentDetails = {
             ...data,
-            content_type: contentType
-          });
+            content_type: contentType,
+            // Make sure thumbnail_path exists
+            thumbnail_path: data.thumbnail_path || data.thumbnail_url
+          };
+          
+          setContent(contentDetails);
           
           setTitle(data.title);
           setDescription(data.description || '');

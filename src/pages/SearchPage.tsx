@@ -57,11 +57,12 @@ const SearchPage: React.FC = () => {
       
       if (error) throw error;
       
-      // Transform content_type to the correct type
+      // Transform content_type to the correct type and ensure thumbnail_path exists
       const typedResults = data.map(item => ({
         ...item,
-        content_type: item.content_type as 'video' | 'audio' | 'pdf' | 'document'
-      }));
+        content_type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm',
+        thumbnail_path: item.thumbnail_path || item.thumbnail_url
+      })) as ContentDetails[];
       
       setResults(typedResults);
     } catch (error) {

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -50,10 +51,10 @@ const ContentTypePage: React.FC = () => {
           const contentItems: ContentItem[] = await Promise.all(data.map(async (item) => {
             // 파일 URL 가져오기
             let thumbnail = '';
-            if (item.thumbnail_path) {
+            if (item.thumbnail_url || item.thumbnail_path) {
               const { data: urlData } = await supabase.storage
                 .from('content_files')
-                .getPublicUrl(item.thumbnail_path);
+                .getPublicUrl(item.thumbnail_url || item.thumbnail_path || '');
               thumbnail = urlData?.publicUrl || '';
             }
             

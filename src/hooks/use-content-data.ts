@@ -33,17 +33,21 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
         if (data) {
           // Get file URLs
           const fileUrl = await getFileUrl(data.file_path);
-          const thumbnailUrl = await getFileUrl(data.thumbnail_path);
+          const thumbnailUrl = await getFileUrl(data.thumbnail_url || data.thumbnail_path);
           
           // Fix: Cast content_type to the correct enum type
           const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
           
-          setContent({
+          const contentDetails: ContentDetails = {
             ...data,
             content_type: contentType,
             fileUrl,
-            thumbnailUrl
-          });
+            thumbnailUrl,
+            // Make sure thumbnail_path exists
+            thumbnail_path: data.thumbnail_path || data.thumbnail_url
+          };
+          
+          setContent(contentDetails);
         }
       } catch (error) {
         console.error('Error fetching content:', error);
