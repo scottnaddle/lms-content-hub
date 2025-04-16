@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import ContentGrid, { ContentItem } from '@/components/content/ContentGrid';
-import { capitalizeFirstLetter } from '@/lib/utils';
+import { capitalizeFirstLetter, generateThumbnailUrl } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ContentTypeHeader from '@/components/content-type/ContentTypeHeader';
@@ -72,7 +71,7 @@ const ContentTypePage: React.FC = () => {
               title: item.title,
               description: item.description || '',
               type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm',
-              thumbnail: thumbnail,
+              thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
               dateAdded: item.created_at,
               tags: item.tags || [],
             });
