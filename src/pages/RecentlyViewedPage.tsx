@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ContentGrid, { ContentItem } from '@/components/content/ContentGrid';
@@ -56,7 +55,6 @@ const RecentlyViewedPage: React.FC = () => {
               description, 
               content_type, 
               thumbnail_url,
-              thumbnail_path, 
               tags, 
               created_at,
               user_views!inner(viewed_at)
@@ -79,7 +77,7 @@ const RecentlyViewedPage: React.FC = () => {
               title: item.title,
               description: item.description || undefined,
               type: item.content_type as any,
-              thumbnail: item.thumbnail_url || item.thumbnail_path || generateThumbnailUrl(item.content_type),
+              thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
               dateAdded: item.user_views[0].viewed_at, // Use the view date instead of created_at
               tags: item.tags || [],
             }));
@@ -106,7 +104,7 @@ const RecentlyViewedPage: React.FC = () => {
               title: item.title,
               description: item.description || undefined,
               type: item.content_type as any,
-              thumbnail: item.thumbnail_url || item.thumbnail_path || generateThumbnailUrl(item.content_type),
+              thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
               dateAdded: item.created_at,
               tags: item.tags || [],
             }));
@@ -134,7 +132,7 @@ const RecentlyViewedPage: React.FC = () => {
             title: item.title,
             description: item.description || undefined,
             type: item.content_type as any,
-            thumbnail: item.thumbnail_path || generateThumbnailUrl(item.content_type),
+            thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
             dateAdded: item.created_at,
             tags: item.tags || [],
           }));

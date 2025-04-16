@@ -51,10 +51,10 @@ const ContentTypePage: React.FC = () => {
           const contentItems: ContentItem[] = await Promise.all(data.map(async (item) => {
             // 파일 URL 가져오기
             let thumbnail = '';
-            if (item.thumbnail_url || item.thumbnail_path) {
+            if (item.thumbnail_url) {
               const { data: urlData } = await supabase.storage
                 .from('content_files')
-                .getPublicUrl(item.thumbnail_url || item.thumbnail_path || '');
+                .getPublicUrl(item.thumbnail_url || '');
               thumbnail = urlData?.publicUrl || '';
             }
             

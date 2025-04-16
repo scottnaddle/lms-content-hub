@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -57,11 +56,10 @@ const SearchPage: React.FC = () => {
       
       if (error) throw error;
       
-      // Transform content_type to the correct type and ensure thumbnail_path exists
+      // Transform content_type to the correct type and ensure thumbnail_url exists
       const typedResults = data.map(item => ({
         ...item,
-        content_type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm',
-        thumbnail_path: item.thumbnail_path || item.thumbnail_url
+        content_type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm'
       })) as ContentDetails[];
       
       setResults(typedResults);
@@ -136,7 +134,7 @@ const SearchPage: React.FC = () => {
             title: item.title,
             description: item.description || '',
             type: item.content_type,
-            thumbnail: item.thumbnailUrl || '',
+            thumbnail: item.thumbnailUrl || item.thumbnail_url || '',
             dateAdded: item.created_at,
             tags: item.tags || []
           }))}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -27,7 +26,6 @@ const EditContentPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   
-  // Fetch content details
   useEffect(() => {
     const fetchContent = async () => {
       if (!id) return;
@@ -44,15 +42,11 @@ const EditContentPage: React.FC = () => {
         if (error) throw error;
         
         if (data) {
-          // Cast content_type to the expected union type
           const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
           
-          // Set the content with the properly typed content_type
           const contentDetails: ContentDetails = {
             ...data,
             content_type: contentType,
-            // Make sure thumbnail_path exists
-            thumbnail_path: data.thumbnail_path || data.thumbnail_url
           };
           
           setContent(contentDetails);
@@ -85,13 +79,11 @@ const EditContentPage: React.FC = () => {
     try {
       setIsSaving(true);
       
-      // Process tags from comma-separated string to array
       const tagsArray = tags
         .split(',')
         .map(tag => tag.trim())
         .filter(tag => tag !== '');
       
-      // Update content metadata
       const { error } = await supabase
         .from('contents')
         .update({
@@ -109,7 +101,6 @@ const EditContentPage: React.FC = () => {
         description: t('contentUpdatedDesc'),
       });
       
-      // Navigate back to content details page
       navigate(`/content/${type}/${id}`);
     } catch (error) {
       console.error('Error updating content:', error);

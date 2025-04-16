@@ -36,7 +36,7 @@ const HomePage: React.FC = () => {
           title: item.title,
           description: item.description || undefined,
           type: item.content_type as any,
-          thumbnail: item.thumbnail_url || item.thumbnail_path || generateThumbnailUrl(item.content_type),
+          thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
           dateAdded: item.created_at,
           tags: item.tags || [],
         }));

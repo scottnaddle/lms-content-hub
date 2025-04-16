@@ -5,8 +5,7 @@ export interface ContentDetails {
   description: string | null;
   content_type: 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
   file_path: string | null;
-  thumbnail_path?: string | null;  // Make this optional with ?
-  thumbnail_url?: string | null;   // Add this as some functions might be using this property
+  thumbnail_url: string | null;  // This is the property that exists in the database
   created_at: string;
   created_by: string | null;
   tags: string[] | null;
