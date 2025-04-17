@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ContentDetails } from '@/types/content';
 import { Chip } from '@/components/ui/chip';
 import { X } from 'lucide-react';
+import { generateThumbnailUrl } from '@/lib/utils';
 
 const SearchPage: React.FC = () => {
   const { t } = useLanguage();
@@ -134,7 +135,7 @@ const SearchPage: React.FC = () => {
             title: item.title,
             description: item.description || '',
             type: item.content_type,
-            thumbnail: item.thumbnailUrl || item.thumbnail_url || '',
+            thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
             dateAdded: item.created_at,
             tags: item.tags || []
           }))}

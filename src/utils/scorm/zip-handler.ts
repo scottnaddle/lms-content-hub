@@ -1,4 +1,3 @@
-
 /**
  * SCORM 패키지의 ZIP 파일 처리를 위한 유틸리티
  */
@@ -118,6 +117,34 @@ export const downloadAndLoadZip = async (
 };
 
 /**
+ * 파일 확장자를 기반으로 MIME 타입을 개선하는 함수
+ */
+const getEnhancedContentType = (filename: string): string => {
+  const lowerFilename = filename.toLowerCase();
+  
+  // Handle common SCORM-specific content types
+  if (lowerFilename.endsWith('.js')) return 'application/javascript';
+  if (lowerFilename.endsWith('.json')) return 'application/json';
+  if (lowerFilename.endsWith('.css')) return 'text/css';
+  if (lowerFilename.endsWith('.html') || lowerFilename.endsWith('.htm')) return 'text/html';
+  if (lowerFilename.endsWith('.xml')) return 'application/xml';
+  if (lowerFilename.endsWith('.png')) return 'image/png';
+  if (lowerFilename.endsWith('.jpg') || lowerFilename.endsWith('.jpeg')) return 'image/jpeg';
+  if (lowerFilename.endsWith('.gif')) return 'image/gif';
+  if (lowerFilename.endsWith('.svg')) return 'image/svg+xml';
+  if (lowerFilename.endsWith('.mp3')) return 'audio/mpeg';
+  if (lowerFilename.endsWith('.mp4')) return 'video/mp4';
+  if (lowerFilename.endsWith('.webm')) return 'video/webm';
+  if (lowerFilename.endsWith('.woff')) return 'font/woff';
+  if (lowerFilename.endsWith('.woff2')) return 'font/woff2';
+  if (lowerFilename.endsWith('.ttf')) return 'font/ttf';
+  if (lowerFilename.endsWith('.otf')) return 'font/otf';
+  
+  // Fallback to the base content type utility
+  return getContentType(filename);
+};
+
+/**
  * ZIP 파일에서 모든 파일 추출 및 Blob URL 생성
  */
 export const extractAllFiles = async (
@@ -132,16 +159,23 @@ export const extractAllFiles = async (
   // Report initial extraction progress
   if (onProgress) onProgress(0);
   
-  // Process files in very small batches for better browser performance
-  const batchSize = 3; // Even smaller batch size
-  for (let i = 0; i < fileEntries.length; i += batchSize) {
-    const batch = fileEntries.slice(i, i + batchSize);
-    
+  // First identify HTML files and process them first
+  const htmlEntries = fileEntries.filter(([filename]) => 
+    filename.toLowerCase().endsWith('.html') || filename.toLowerCase().endsWith('.htm')
+  );
+  const otherEntries = fileEntries.filter(([filename]) => 
+    !(filename.toLowerCase().endsWith('.html') || filename.toLowerCase().endsWith('.htm'))
+  );
+  
+  console.log(`Processing ${htmlEntries.length} HTML files first, then ${otherEntries.length} other files`);
+  
+  // Function to process a batch of files
+  const processBatch = async (batch: [string, JSZip.JSZipObject][]) => {
     await Promise.all(batch.map(async ([filename, file]) => {
       try {
         // 파일 내용을 Blob으로 추출
         const content = await file.async('blob');
-        const contentType = getContentType(filename);
+        const contentType = getEnhancedContentType(filename);
         
         // Create a blob with the correct MIME type
         const blob = new Blob([content], { type: contentType });
@@ -167,9 +201,24 @@ export const extractAllFiles = async (
         onProgress(progress);
       }
     }));
-    
-    // Larger delay between batches to let the browser breathe
-    await new Promise(resolve => setTimeout(resolve, 50));
+  };
+  
+  // Process HTML files first in batches
+  const htmlBatchSize = 2;
+  for (let i = 0; i < htmlEntries.length; i += htmlBatchSize) {
+    const batch = htmlEntries.slice(i, i + htmlBatchSize);
+    await processBatch(batch);
+    // Small delay between batches
+    await new Promise(resolve => setTimeout(resolve, 30));
+  }
+  
+  // Then process other files in batches
+  const otherBatchSize = 5; 
+  for (let i = 0; i < otherEntries.length; i += otherBatchSize) {
+    const batch = otherEntries.slice(i, i + otherBatchSize);
+    await processBatch(batch);
+    // Small delay between batches
+    await new Promise(resolve => setTimeout(resolve, 30));
   }
   
   console.log('Extraction complete, total files:', extractedFiles.size);

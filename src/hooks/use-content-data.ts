@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { ContentDetails } from '@/types/content';
 import { getFileUrl, incrementViewCount } from '@/utils/content-utils';
+import { generateThumbnailUrl } from '@/lib/utils';
 
 export const useContentData = (id: string | undefined, t: (key: string) => string) => {
   const { toast } = useToast();
@@ -33,7 +33,6 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
         if (data) {
           // Get file URLs
           const fileUrl = await getFileUrl(data.file_path);
-          const thumbnailUrl = await getFileUrl(data.thumbnail_url);
           
           // Fix: Cast content_type to the correct enum type
           const contentType = data.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm';
@@ -42,7 +41,7 @@ export const useContentData = (id: string | undefined, t: (key: string) => strin
             ...data,
             content_type: contentType,
             fileUrl,
-            thumbnailUrl
+            thumbnailUrl: data.thumbnail_url || generateThumbnailUrl(contentType)
           };
           
           setContent(contentDetails);

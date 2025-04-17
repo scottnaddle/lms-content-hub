@@ -1,4 +1,3 @@
-
 import { TranslationsCollection } from './types';
 
 export const navigationGeneralTranslations: TranslationsCollection = {

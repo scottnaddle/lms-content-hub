@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { extractScormPackage } from '@/utils/scorm';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,16 +27,16 @@ export const useScormLoader = (fileUrl?: string) => {
     console.log('Getting signed URL for:', path);
     
     try {
-      // Much longer expiration - 12 hours
+      // Much longer expiration - 24 hours
       const { data, error } = await supabase
         .storage
         .from('content_files')
-        .createSignedUrl(path, 43200); // 12 hours = 43200 seconds
+        .createSignedUrl(path, 86400); // 24 hours = 86400 seconds
       
       if (error) throw error;
       if (!data?.signedUrl) throw new Error('Failed to get signed URL');
       
-      console.log('Obtained signed URL with 12-hour expiration');
+      console.log('Obtained signed URL with 24-hour expiration');
       return data.signedUrl;
     } catch (err: any) {
       console.error('Signed URL error:', err);
@@ -70,7 +69,7 @@ export const useScormLoader = (fileUrl?: string) => {
       console.log('Parsed file path:', actualPath);
       
       const signedUrl = await getSignedUrl(actualPath);
-      console.log('Successfully got signed URL with 12-hour expiration');
+      console.log('Successfully got signed URL with 24-hour expiration');
       
       // Extract SCORM package with progress tracking
       const { entryPoint, extractedFiles: files, error: extractError } = await extractScormPackage(
@@ -116,7 +115,41 @@ export const useScormLoader = (fileUrl?: string) => {
       console.log('SCORM entry point found:', entryPoint);
       console.log('Entry URL:', entryUrl);
       
-      setEntryPointUrl(entryUrl);
+      // Check if the entry point is an HTML file
+      const isHtmlFile = entryPoint.toLowerCase().endsWith('.html') || 
+                         entryPoint.toLowerCase().endsWith('.htm');
+      
+      if (!isHtmlFile) {
+        console.warn('Entry point is not an HTML file:', entryPoint);
+        // Try to find an HTML file in the same directory
+        const entryDir = entryPoint.split('/').slice(0, -1).join('/');
+        console.log('Looking for HTML files in directory:', entryDir);
+        
+        const htmlFiles = Array.from(files.keys()).filter(path => {
+          return (path.toLowerCase().endsWith('.html') || path.toLowerCase().endsWith('.htm')) &&
+                 (entryDir ? path.startsWith(entryDir) : true);
+        });
+        
+        console.log('Found HTML files:', htmlFiles);
+        
+        if (htmlFiles.length > 0) {
+          // Use the first HTML file as entry point
+          const newEntryPoint = htmlFiles[0];
+          const newEntryUrl = files.get(newEntryPoint);
+          
+          if (newEntryUrl) {
+            console.log('Using alternative HTML entry point:', newEntryPoint);
+            setEntryPointUrl(newEntryUrl);
+          } else {
+            setEntryPointUrl(entryUrl); // Fallback to original
+          }
+        } else {
+          setEntryPointUrl(entryUrl); // Fallback to original
+        }
+      } else {
+        setEntryPointUrl(entryUrl);
+      }
+      
       setStage('loading');
       
       // Delay before marking as complete to allow initialization
@@ -124,7 +157,7 @@ export const useScormLoader = (fileUrl?: string) => {
         setStage('complete');
         setIsLoading(false);
         console.log(`SCORM load attempt ${uniqueId} completed successfully`);
-      }, 1500);
+      }, 2000);
       
     } catch (err: any) {
       console.error("SCORM 로드 오류:", err);

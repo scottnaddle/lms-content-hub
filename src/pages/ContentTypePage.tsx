@@ -47,35 +47,15 @@ const ContentTypePage: React.FC = () => {
         }
         
         if (data) {
-          const contentItems: ContentItem[] = [];
-          
-          for (const item of data) {
-            let thumbnail = '';
-            
-            console.log(`Processing content: ${item.id}`);
-            console.log(`Thumbnail URL from database: ${item.thumbnail_url}`);
-            
-            try {
-              if (item.thumbnail_url) {
-                thumbnail = await getFileUrl(item.thumbnail_url);
-                console.log(`Generated thumbnail URL for ${item.id}: ${thumbnail}`);
-              } else {
-                console.warn(`No thumbnail URL for content ${item.id}`);
-              }
-            } catch (thumbnailError) {
-              console.error(`Error getting thumbnail for ${item.id}:`, thumbnailError);
-            }
-            
-            contentItems.push({
-              id: item.id,
-              title: item.title,
-              description: item.description || '',
-              type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm',
-              thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
-              dateAdded: item.created_at,
-              tags: item.tags || [],
-            });
-          }
+          const contentItems: ContentItem[] = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            description: item.description || '',
+            type: item.content_type as 'video' | 'audio' | 'pdf' | 'document' | 'scorm',
+            thumbnail: item.thumbnail_url || generateThumbnailUrl(item.content_type),
+            dateAdded: item.created_at,
+            tags: item.tags || [],
+          }));
           
           setContents(contentItems);
         }
@@ -92,11 +72,16 @@ const ContentTypePage: React.FC = () => {
   }, [contentType]);
   
   // 검색어로 콘텐츠 필터링
-  const filteredContent = contents.filter(item => 
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredContent = contents.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      item.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTag = searchTerm ? 
+      item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) : 
+      true;
+    
+    return matchesSearch || matchesTag;
+  });
   
   // Get the appropriate search placeholder text based on content type
   const getSearchPlaceholder = () => {
